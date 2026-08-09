@@ -1,0 +1,20 @@
+One afternoon of testing beats six months of mediocre retrieval.
+
+That's the real cost equation of choosing an embedding model — and almost everyone skips the test and trusts the MTEB leaderboard instead.
+
+The trap: benchmarks measure generic corpora. Your domain has legal jargon, source code, or non-English text — and models that win on averages routinely lose there.
+
+Picture the two roads: one stops at the leaderboard and inherits its blind spots; the other runs 2-3 candidates against your own 50 questions and lets recall@k, latency and cost pick the winner.
+
+The process that works:
+
+1. Pick 2-3 candidates.
+2. Run them on YOUR documents with 50 real questions.
+3. Compare recall@k, latency and cost — 3072-dimension vectors cost roughly 4x more than 768 to store and search.
+4. Crown the winner and reindex EVERYTHING. Mixed vectors from different models in one index fail silently.
+
+The bigger lesson: in RAG, evidence from your own data always beats reputation. A leaderboard is where the shortlist starts, never where the decision ends.
+
+Which embedding model are you running today? 👇
+
+#RAG #Embeddings #AIEngineering
