@@ -1,43 +1,43 @@
-# Pesquisa — LinkedIn API e Napkin AI (2026-08-09)
+# Research — LinkedIn API and Napkin AI (2026-08-09)
 
-> Pesquisa direcionada (formato reduzido; o tema não justificou Deep Research de 16
-> seções — decisão por regra do Passo 2 do dd-greenfield). Alimenta o HLD e os ADRs.
+> Targeted research (condensed format; the topic did not justify a 16-section Deep
+> Research — decision per the dd-greenfield Step 2 rule). Feeds the HLD and the ADRs.
 
-## LinkedIn — publicar no perfil pessoal
+## LinkedIn — publishing to a personal profile
 
-- **Gratuito e self-serve**: criar app em https://www.linkedin.com/developers/apps
-  (exige associar a uma Company Page), adicionar os produtos **"Share on LinkedIn"**
-  (dá `w_member_social`) e **"Sign In with LinkedIn using OpenID Connect"**
-  (dá `openid profile`, necessários para `GET /v2/userinfo` → campo `sub` → autor
+- **Free and self-serve**: create an app at https://www.linkedin.com/developers/apps
+  (requires associating a Company Page), add the products **"Share on LinkedIn"**
+  (grants `w_member_social`) and **"Sign In with LinkedIn using OpenID Connect"**
+  (grants `openid profile`, needed for `GET /v2/userinfo` → `sub` field → author
   `urn:li:person:{sub}`).
-- **API atual (versionada)**: `POST https://api.linkedin.com/rest/posts` com headers
-  `LinkedIn-Version: YYYYMM` (versões mensais expiram — manter parametrizada),
-  `X-Restli-Protocol-Version: 2.0.0`. Sucesso: `201` + id no header `x-restli-id`.
-- **Imagem**: `POST /rest/images?action=initializeUpload` com
-  `{"initializeUploadRequest": {"owner": "urn:li:person:{sub}"}}` → resposta traz
-  `uploadUrl` (PUT do binário com Bearer) e `image` (`urn:li:image:...`) que vai em
-  `content.media.id` do post. PNG/JPG/GIF.
-- **Token**: validade **60 dias**; apps padrão **não têm refresh token** (exclusivo de
-  parceiros aprovados). Renovação: repetir OAuth no navegador ou usar o **Token
-  Generator** do Developer Portal (OAuth Tools) — caminho recomendado para uso pessoal.
-- **Rate limit**: 150 requests/dia por membro — irrelevante para 3 posts/semana.
-  Atenção a `CONTENT_DUPLICATE` (LinkedIn rejeita post idêntico repetido).
-- Payload mínimo de post pessoal com imagem: ver FDD seção 5.
+- **Current (versioned) API**: `POST https://api.linkedin.com/rest/posts` with headers
+  `LinkedIn-Version: YYYYMM` (monthly versions expire — keep it parameterized),
+  `X-Restli-Protocol-Version: 2.0.0`. Success: `201` + id in the `x-restli-id` header.
+- **Image**: `POST /rest/images?action=initializeUpload` with
+  `{"initializeUploadRequest": {"owner": "urn:li:person:{sub}"}}` → the response carries
+  `uploadUrl` (PUT the binary with Bearer auth) and `image` (`urn:li:image:...`), which
+  goes into the post's `content.media.id`. PNG/JPG/GIF.
+- **Token**: valid for **60 days**; standard apps **have no refresh token** (exclusive
+  to approved partners). Renewal: repeat OAuth in the browser or use the Developer
+  Portal's **Token Generator** (OAuth Tools) — the recommended path for personal use.
+- **Rate limit**: 150 requests/day per member — irrelevant for 3 posts/week.
+  Watch out for `CONTENT_DUPLICATE` (LinkedIn rejects a repeated identical post).
+- Minimal payload for a personal post with an image: see FDD section 5.
 
-Fontes: learn.microsoft.com/linkedin (share-on-linkedin, posts-api view=li-lms-2026-06,
+Sources: learn.microsoft.com/linkedin (share-on-linkedin, posts-api view=li-lms-2026-06,
 images-api, authorization-code-flow, programmatic-refresh-tokens, rate-limits).
 
 ## Napkin AI
 
-- API existe (developer preview, token em app.napkin.ai → Settings → Developers), mas
-  **consome créditos pagos** da conta (free ≈ 3 visuais; planos US$9–22/mês).
-- **Veredicto: incompatível com o requisito de custo zero** → substituída por
-  renderização local com Pillow (ADR-003).
+- The API exists (developer preview, token at app.napkin.ai → Settings → Developers),
+  but it **consumes paid credits** from the account (free ≈ 3 visuals; plans US$9–22/mo).
+- **Verdict: incompatible with the zero-cost requirement** → replaced by local
+  rendering with Pillow (ADR-003).
 
-## Alternativas gratuitas de imagem avaliadas
+## Free image alternatives evaluated
 
-| Opção | Prós | Contras |
+| Option | Pros | Cons |
 |---|---|---|
-| **Pillow (escolhida)** | leve, offline, ilimitada, rápida no CI | layout manual, visual mais simples |
-| HTML→PNG (Playwright) | CSS completo, visual rico | ~300 MB de browser no runner, lento |
-| QuickChart/Kroki | diagramas prontos via HTTP | dependência de serviço externo, limites no hosted |
+| **Pillow (chosen)** | lightweight, offline, unlimited, fast in CI | manual layout, simpler visuals |
+| HTML→PNG (Playwright) | full CSS, rich visuals | ~300 MB of browser on the runner, slow |
+| QuickChart/Kroki | ready-made diagrams over HTTP | external service dependency, limits on hosted tiers |

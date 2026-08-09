@@ -1,32 +1,33 @@
-# ADR-005 — Estado no git (sem banco de dados)
+# ADR-005 — State in git (no database)
 
-- Status: aceito (2026-08-09, modo autônomo)
-- Domínio: CONTENT-PIPELINE
+- Status: accepted (2026-08-09, autonomous mode)
+- Domain: CONTENT-PIPELINE
 
-## Contexto
+## Context
 
-O sistema precisa saber quais posts estão pendentes e quais já foram publicados.
-Qualquer banco/storage externo (S3, DynamoDB, SQLite hospedado) adiciona custo ou
-infraestrutura para um estado minúsculo.
+The system needs to know which posts are pending and which have already been
+published. Any external database/storage (S3, DynamoDB, hosted SQLite) adds cost or
+infrastructure for a tiny amount of state.
 
-## Decisão
+## Decision
 
-O **repositório git é o único storage**: `content/queue/` = pendentes,
-`content/published/` = histórico (com `published_at` e id do post no frontmatter),
-`out/` = imagens geradas. O job do Actions commita a transição em `main`
-(`publish: <id> <título>`).
+The **git repository is the only storage**: `content/queue/` = pending,
+`content/published/` = history (with `published_at` and the post id in the
+frontmatter), `out/` = generated images. The Actions job commits the transition to
+`main` (`publish: <id> <title>`).
 
-## Alternativas consideradas
+## Alternatives considered
 
-- **S3/GCS** — rejeitada: conta cloud e custo para bytes de estado.
-- **SQLite no repo** — rejeitada: binário em git dificulta diff/review; markdown é
-  legível e editável.
-- **GitHub Releases/Artifacts como storage** — rejeitada: artefatos expiram e não são
-  fonte de verdade auditável.
+- **S3/GCS** — rejected: cloud account and cost for a few bytes of state.
+- **SQLite in the repo** — rejected: a binary in git hampers diff/review; markdown is
+  readable and editable.
+- **GitHub Releases/Artifacts as storage** — rejected: artifacts expire and are not
+  an auditable source of truth.
 
-## Consequências
+## Consequences
 
-- Histórico completo e auditável por `git log`.
-- Concorrência é um não-problema (um job por vez; `concurrency` no workflow garante).
-- `main` não pode ser reescrita (dependência do fast-forward do bot) — regra no
+- Complete history, auditable via `git log`.
+- Concurrency is a non-issue (one job at a time; `concurrency` in the workflow
+  guarantees it).
+- `main` must never be rewritten (the bot depends on fast-forward) — rule in
   `docs/gitflow.md`.

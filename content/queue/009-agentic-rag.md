@@ -1,35 +1,36 @@
 ---
 id: "009"
 topic: agentic rag
-title: "Agentic RAG: quando o pipeline vira um loop"
+title: "Agentic RAG: when the pipeline becomes a loop"
 image:
-  headline: "Agentic RAG: buscar, avaliar, buscar de novo"
+  headline: "Agentic RAG: search, evaluate, search again"
   bullets:
-    - "Pipeline linear busca uma vez e reza"
-    - "Agente avalia o que achou e decide o próximo passo"
-    - "Auto-crítica antes de responder"
-    - "Custo e latência: use com parcimônia"
-alt_text: "Card técnico sobre Agentic RAG e loops de retrieval"
+    - "Linear pipelines search once and pray"
+    - "An agent evaluates results and decides the next step"
+    - "Self-critique before answering"
+    - "Cost and latency: use sparingly"
+  prompt: "Abstract illustration of an intelligent feedback loop, circular flow of glowing arrows and decision nodes, autonomous agent concept, dark navy background with cyan and electric blue accents, futuristic minimal style"
+alt_text: "Technical card about Agentic RAG and retrieval loops"
 status: ready
 ---
-O RAG tradicional é uma linha reta: busca, monta o contexto, responde. Uma chance. Se o retrieval falhou, a resposta nasce condenada — e o modelo nem sabe disso.
+Traditional RAG is a straight line: search, build context, answer. One shot. If retrieval failed, the answer is doomed at birth — and the model doesn't even know it.
 
-Agentic RAG transforma a linha num loop. O LLM deixa de ser o último estágio e vira o operador do pipeline:
+Agentic RAG turns the line into a loop. The LLM stops being the last stage and becomes the pipeline's operator:
 
-1. Decide SE precisa buscar — "quanto é 15% de 300?" não precisa de retrieval nenhum.
+1. It decides WHETHER to search — "what's 15% of 300?" needs no retrieval at all.
 
-2. Decide ONDE buscar — base de contratos, documentação técnica ou busca na web são ferramentas diferentes para perguntas diferentes.
+2. It decides WHERE to search — the contracts database, technical docs, and web search are different tools for different questions.
 
-3. Avalia o que voltou — "esses chunks respondem a pergunta?" Se não, reformula a query e tenta de novo, em vez de alucinar por cima de contexto ruim.
+3. It evaluates what came back — "do these chunks answer the question?" If not, it reformulates the query and tries again, instead of hallucinating on top of bad context.
 
-4. Critica a própria resposta antes de entregar — a afirmação está sustentada pelas fontes? Falta cobrir metade da pergunta? Volta ao passo 2.
+4. It critiques its own answer before delivering — is every claim supported by the sources? Is half the question still uncovered? Back to step 2.
 
-É a diferença entre um estagiário que devolve a primeira coisa que achou no Google e um analista que pesquisa até ter a resposta.
+It's the difference between an intern who returns the first thing they found on Google and an analyst who keeps digging until they have the answer.
 
-O custo é real e proporcional: cada iteração é mais uma chamada de LLM, e a latência deixa de ser previsível. Por isso a arquitetura sensata é híbrida — pipeline linear para o caso comum, com um teto de 2 ou 3 iterações extras quando a auto-avaliação reprova o retrieval.
+The cost is real and proportional: every iteration is another LLM call, and latency stops being predictable. So the sensible architecture is hybrid — a linear pipeline for the common case, with a cap of 2-3 extra iterations when self-evaluation rejects the retrieval.
 
-Comece pelo passo 3: uma única checagem de "o contexto responde a pergunta?" antes da geração já elimina uma família inteira de alucinações.
+Start with step 3: a single "does this context answer the question?" check before generation already eliminates a whole family of hallucinations.
 
-Seu RAG tem direito a uma segunda tentativa? 👇
+Does your RAG get a second chance? 👇
 
-#RAG #AgenticAI #IA #LLM #AIAgents
+#RAG #AgenticAI #LLM #AI #AIAgents

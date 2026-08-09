@@ -8,16 +8,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 POST_TEMPLATE = """---
 id: "{id}"
 topic: chunking
-title: "Post de teste {id}"
+title: "Test post {id}"
 image:
   headline: "Headline {id}"
   bullets:
-    - "primeiro ponto"
-    - "segundo ponto"
-alt_text: "card de teste"
+    - "first point"
+    - "second point"
+alt_text: "test card"
 status: {status}
 ---
-Legenda do post {id} com #RAG e #IA.
+Caption of post {id} with #RAG and #AI.
 """
 
 
@@ -29,6 +29,6 @@ def repo(tmp_path: Path) -> Path:
 
 
 def make_post(root: Path, id_: str, status: str = "ready") -> Path:
-    path = root / "content/queue" / f"{id_}-teste.md"
+    path = root / "content/queue" / f"{id_}-test.md"
     path.write_text(POST_TEMPLATE.format(id=id_, status=status), encoding="utf-8")
     return path

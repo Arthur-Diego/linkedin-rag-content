@@ -1,81 +1,86 @@
-# FDD 001 — Pipeline de publicação automática
+# FDD 001 — Automated publishing pipeline
 
-> Aprovado em 2026-08-09 (modo autônomo). Terreno: `../hld.md`, `docs/prd.md`,
+> Approved 2026-08-09 (autonomous mode). Groundwork: `../hld.md`, `docs/prd.md`,
 > ADRs 001–005.
 
-## 1. Objetivo
+## 1. Goal
 
-Job que, a cada disparo do agendador, publica no LinkedIn o próximo post da fila
-(texto + imagem renderizada) ou, sem token, entrega o post pronto como draft.
+A job that, on each scheduler trigger, publishes the next post from the queue to
+LinkedIn (text + rendered image) or, without a token, delivers the finished post
+as a draft.
 
-## 2. Formato do post na fila
+## 2. Queued post format
 
-`content/queue/NNN-slug.md` — markdown com frontmatter YAML:
+`content/queue/NNN-slug.md` — markdown with YAML frontmatter:
 
 ```yaml
 ---
-id: "001"                # ordena a fila (menor primeiro)
-topic: chunking          # chip exibido no card
-title: "Título interno"
+id: "001"                # orders the queue (lowest first)
+topic: chunking          # chip displayed on the card
+title: "Internal title"
 image:
-  headline: "Título do card (curto)"
+  headline: "Card headline (short)"
   bullets:
-    - "linha 1"
-    - "linha 2"
-    - "linha 3"
-alt_text: "descrição da imagem para acessibilidade"  # opcional; fallback = title
+    - "line 1"
+    - "line 2"
+    - "line 3"
+  prompt: "abstract illustration idea"   # optional; AI background art direction
+alt_text: "image description for accessibility"  # optional; fallback = title
 status: ready            # ready | published
 ---
-Corpo da legenda do LinkedIn (com hashtags no final).
+Body of the LinkedIn caption (with hashtags at the end).
 ```
 
-Ao publicar: frontmatter ganha `status: published`, `published_at` (ISO-8601 UTC) e
-`linkedin_post_id`; arquivo move para `content/published/`.
+On publish: the frontmatter gains `status: published`, `published_at` (ISO-8601 UTC)
+and `linkedin_post_id`; the file moves to `content/published/`.
 
-## 3. Módulos
+## 3. Modules
 
-| Módulo | Função pública | Comportamento |
+| Module | Public function | Behavior |
 |---|---|---|
-| `queue_store` | `next_post(root)` | menor `id` com `status: ready`; `None` se vazia |
-| | `count_ready(root)` | posts restantes na fila |
-| | `mark_published(root, post, post_id)` | atualiza frontmatter + move para published/ |
-| `renderer` | `render_card(post, out_path)` | PNG 1200×1350, gradiente, chip, headline, bullets, rodapé |
-| `linkedin` | `publish(token, version, caption, image_path, alt_text)` | userinfo → initializeUpload → PUT binário → POST /rest/posts; retorna id |
-| `run` | CLI `python -m linkedin_pipeline.run [--dry-run] [--root PATH]` | orquestra e emite outputs p/ GitHub Actions |
+| `queue_store` | `next_post(root)` | lowest `id` with `status: ready`; `None` if empty |
+| | `count_ready(root)` | posts remaining in the queue |
+| | `mark_published(root, post, post_id)` | updates frontmatter + moves to published/ |
+| `renderer` | `render_card(post, out_path, background=None)` | 1200×1350 PNG, chip, headline, bullets, footer; background = darkened AI illustration or default gradient |
+| `ai_renderer` | `build_prompt(post)`, `generate_background(api_key, prompt)` | gpt-image-1 textless background from `image.prompt` (or topic default); raises `AIImageError` on failure (ADR-006) |
+| `linkedin` | `publish(token, version, caption, image_path, alt_text)` | userinfo → initializeUpload → PUT binary → POST /rest/posts; returns id |
+| `run` | CLI `python -m linkedin_pipeline.run [--dry-run] [--root PATH]` | orchestrates and emits outputs for GitHub Actions |
 
-## 4. Fluxo do `run`
+## 4. `run` flow
 
-1. `next_post` — fila vazia → loga `QUEUE_EMPTY`, outputs `queue_empty=true`,
+1. `next_post` — empty queue → logs `QUEUE_EMPTY`, outputs `queue_empty=true`,
    `mode=none`, exit 0.
-2. `render_card` → `out/<id>.png`; legenda → `out/<id>-caption.txt`.
-3. `--dry-run` → para aqui (nada de API, nada de move) → `mode=dry-run`.
-4. `LINKEDIN_ACCESS_TOKEN` presente → `linkedin.publish` → `mark_published` →
+2. With `OPENAI_API_KEY` set: try an AI background (`ai_renderer`); any failure logs
+   and falls back to the gradient — never blocks publishing.
+3. `render_card` → `out/<id>.png`; caption → `out/<id>-caption.txt`.
+4. `--dry-run` → stops here (no LinkedIn API, no move) → `mode=dry-run`.
+5. `LINKEDIN_ACCESS_TOKEN` present → `linkedin.publish` → `mark_published` →
    `mode=published`.
-5. Sem token → `mode=draft` (post NÃO sai da fila; artefatos commitados pelo
-   workflow e issue aberta com a legenda).
+6. No token → `mode=draft` (the post does NOT leave the queue; artifacts committed
+   by the workflow and an issue opened with the caption).
 
-Outputs emitidos em `$GITHUB_OUTPUT` (contrato run ↔ workflow):
+Outputs emitted to `$GITHUB_OUTPUT` (run ↔ workflow contract):
 
-| Output | Valores |
+| Output | Values |
 |---|---|
-| `mode` | `none` (fila vazia) · `dry-run` · `published` · `draft` |
+| `mode` | `none` (empty queue) · `dry-run` · `published` · `draft` |
 | `queue_empty` | `true` / `false` |
-| `queue_remaining` | inteiro (workflow abre issue de reabastecimento se ≤ 2) |
-| `post_id`, `post_title` | identificação do post (ausentes quando fila vazia) |
-| `image_path`, `caption_path` | caminhos relativos dos artefatos (idem) |
+| `queue_remaining` | integer (workflow opens a replenishment issue if ≤ 2) |
+| `post_id`, `post_title` | post identification (absent when the queue is empty) |
+| `image_path`, `caption_path` | relative artifact paths (likewise) |
 
-## 5. Contrato externo consumido (LinkedIn, API versionada)
+## 5. External contract consumed (LinkedIn, versioned API)
 
-- `GET /v2/userinfo` → `sub` → autor `urn:li:person:{sub}`.
+- `GET /v2/userinfo` → `sub` → author `urn:li:person:{sub}`.
 - `POST /rest/images?action=initializeUpload` body
   `{"initializeUploadRequest":{"owner":"<author>"}}` → `uploadUrl` + `image` URN.
-- `PUT <uploadUrl>` com binário PNG e `Authorization: Bearer`.
-- `POST /rest/posts` (201 + header `x-restli-id`):
+- `PUT <uploadUrl>` with the PNG binary and `Authorization: Bearer`.
+- `POST /rest/posts` (201 + `x-restli-id` header):
 
 ```json
 {
   "author": "urn:li:person:{sub}",
-  "commentary": "<legenda com caracteres reservados escapados>",
+  "commentary": "<caption with reserved characters escaped>",
   "visibility": "PUBLIC",
   "distribution": {"feedDistribution": "MAIN_FEED", "targetEntities": [],
                     "thirdPartyDistributionChannels": []},
@@ -87,30 +92,33 @@ Outputs emitidos em `$GITHUB_OUTPUT` (contrato run ↔ workflow):
 
 - Headers: `LinkedIn-Version: <LINKEDIN_VERSION, default 202606>`,
   `X-Restli-Protocol-Version: 2.0.0`, `Content-Type: application/json`.
-- Escape do commentary (formato little-text): prefixar `\` em
-  `\ | { } [ ] ( ) < > * _ ~` — `#` e `@` ficam intactos (hashtags/menções).
+- Commentary escaping (little-text format): prefix `\` to
+  `\ | { } [ ] ( ) < > * _ ~` — `#` and `@` stay untouched (hashtags/mentions).
 
-## 6. Matriz de erros
+## 6. Error matrix
 
-| Cenário | Comportamento |
+| Scenario | Behavior |
 |---|---|
-| Fila vazia | exit 0, `queue_empty=true`, issue de reabastecimento |
-| HTTP ≠ 2xx em qualquer chamada LinkedIn | `LinkedInError` com status + corpo; job falha (visível no Actions) |
-| 401 (token expirado) | idem acima; runbook orienta renovação |
-| Frontmatter inválido no post | `ValueError` nomeando o arquivo; job falha |
-| Fonte DejaVu ausente | fallback para fonte default do Pillow (degrada estética, não falha) |
-| Post duplicado (`CONTENT_DUPLICATE`) | job falha; operador remove/edita o post da fila |
+| Empty queue | exit 0, `queue_empty=true`, replenishment issue |
+| HTTP ≠ 2xx on any LinkedIn call | `LinkedInError` with status + body; job fails (visible in Actions) |
+| 401 (expired token) | same as above; runbook covers renewal |
+| Invalid frontmatter in a post | `ValueError` naming the file; job fails |
+| DejaVu font missing | falls back to Pillow's default font (degrades aesthetics, does not fail) |
+| OpenAI image API failure (quota, 401, timeout) | logs the error and falls back to the gradient background; job continues |
+| Duplicate post (`CONTENT_DUPLICATE`) | job fails; operator removes/edits the queued post |
 
-## 7. Critérios de aceite
+## 7. Acceptance criteria
 
-1. `--dry-run` com fila abastecida gera PNG + caption em `out/` e não altera a fila.
-2. Sem token e sem `--dry-run`, outputs indicam `mode=draft` e a fila não é consumida.
-3. Com token (mock nos testes), o payload enviado bate com a seção 5 e o post move
-   para `content/published/` com `published_at` e `linkedin_post_id`.
-4. Fila vazia encerra com exit 0 e `queue_empty=true`.
-5. `pytest` verde cobrindo fila, renderer e cliente LinkedIn (mockado).
+1. `--dry-run` with a stocked queue generates PNG + caption in `out/` and does not
+   change the queue.
+2. Without a token and without `--dry-run`, outputs indicate `mode=draft` and the
+   queue is not consumed.
+3. With a token (mocked in tests), the payload sent matches section 5 and the post
+   moves to `content/published/` with `published_at` and `linkedin_post_id`.
+4. An empty queue exits with code 0 and `queue_empty=true`.
+5. `pytest` green covering the queue, renderer, and LinkedIn client (mocked).
 
-## 8. Observabilidade
+## 8. Observability
 
-Logs no stdout do job; outputs estruturados via `$GITHUB_OUTPUT`; issues como canal de
-notificação. Sem métricas adicionais (escala de 3 execuções/semana).
+Logs on the job's stdout; structured outputs via `$GITHUB_OUTPUT`; issues as the
+notification channel. No additional metrics (scale of 3 runs/week).

@@ -1,33 +1,34 @@
 ---
 id: "007"
 topic: graph rag
-title: "Graph RAG: quando busca por similaridade não alcança"
+title: "Graph RAG: when similarity search can't reach the answer"
 image:
-  headline: "Graph RAG: respostas que exigem conexões"
+  headline: "Graph RAG: answers that require connections"
   bullets:
-    - "Similaridade não responde perguntas globais"
-    - "Entidades e relações viram um grafo"
-    - "Comunidades resumidas respondem o macro"
-    - "Custo alto: use onde vetor comprovadamente falha"
-alt_text: "Card técnico sobre Graph RAG e grafos de conhecimento"
+    - "Similarity can't answer global questions"
+    - "Entities and relations become a graph"
+    - "Summarized communities answer the big picture"
+    - "High cost: use it where vectors provably fail"
+  prompt: "Abstract knowledge graph visualization, glowing interconnected nodes and edges forming communities and clusters, dark navy background with cyan and blue accents, futuristic data network"
+alt_text: "Technical card about Graph RAG and knowledge graphs"
 status: ready
 ---
-"Quais são os principais temas destes 10 mil documentos?" — essa pergunta quebra qualquer RAG tradicional.
+"What are the main themes across these 10,000 documents?" — that question breaks any traditional RAG.
 
-Busca por similaridade responde perguntas locais: a resposta vive em um ou dois chunks. Mas perguntas globais — temas dominantes, conexões entre entidades, cadeias de dependência — não têm UM chunk certo. A resposta está espalhada pela coleção inteira.
+Similarity search answers local questions: the answer lives in one or two chunks. But global questions — dominant themes, connections between entities, dependency chains — have no single right chunk. The answer is scattered across the entire collection.
 
-Graph RAG ataca isso mudando a estrutura:
+Graph RAG attacks this by changing the structure:
 
-1. Na indexação, um LLM extrai entidades e relações de cada documento e monta um grafo de conhecimento.
+1. At indexing time, an LLM extracts entities and relations from each document and builds a knowledge graph.
 
-2. Algoritmos de detecção de comunidades agrupam entidades conectadas, e cada comunidade ganha um resumo gerado previamente.
+2. Community detection algorithms group connected entities, and each community gets a pre-generated summary.
 
-3. Na consulta, perguntas globais são respondidas pelos resumos das comunidades; perguntas locais navegam o grafo — da entidade citada aos seus vizinhos, juntando contexto que nenhuma busca vetorial encontraria junto.
+3. At query time, global questions are answered from community summaries; local questions traverse the graph — from the mentioned entity to its neighbors, assembling context no vector search would ever bring together.
 
-O caso clássico: "qual a relação entre o fornecedor X e o incidente Y?" — a resposta atravessa 4 documentos que não compartilham vocabulário. Só o grafo conecta.
+The classic case: "what's the relationship between supplier X and incident Y?" — the answer spans 4 documents that share no vocabulary. Only the graph connects them.
 
-O preço é real: indexar com LLM custa caro, manter o grafo atualizado dá trabalho, e a latência sobe. Por isso minha regra: Graph RAG não substitui o RAG vetorial — complementa. Adote quando tiver perguntas que o vetor comprovadamente não responde, não porque é a sigla do momento.
+The price is real: LLM-powered indexing is expensive, keeping the graph fresh takes work, and latency goes up. Hence my rule: Graph RAG doesn't replace vector RAG — it complements it. Adopt it when you have questions vectors provably can't answer, not because it's the acronym of the month.
 
-Você já esbarrou em perguntas que o RAG tradicional não alcança? 👇
+Have you hit questions your traditional RAG simply can't reach? 👇
 
-#RAG #GraphRAG #KnowledgeGraph #IA #LLM
+#RAG #GraphRAG #KnowledgeGraph #LLM #AI

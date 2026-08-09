@@ -1,4 +1,4 @@
-"""Fila de posts versionada no git: content/queue/ -> content/published/."""
+"""Post queue versioned in git: content/queue/ -> content/published/."""
 
 from __future__ import annotations
 
@@ -34,14 +34,14 @@ class Post:
 def _parse(path: Path) -> Post:
     text = path.read_text(encoding="utf-8")
     if not text.startswith("---"):
-        raise ValueError(f"post sem frontmatter: {path}")
+        raise ValueError(f"post without frontmatter: {path}")
     try:
         _, fm, body = text.split("---", 2)
         meta = yaml.safe_load(fm)
     except (ValueError, yaml.YAMLError) as exc:
-        raise ValueError(f"frontmatter inválido em {path}: {exc}") from exc
+        raise ValueError(f"invalid frontmatter in {path}: {exc}") from exc
     if not isinstance(meta, dict) or "id" not in meta:
-        raise ValueError(f"frontmatter sem 'id' em {path}")
+        raise ValueError(f"frontmatter missing 'id' in {path}")
     return Post(path=path, meta=meta, body=body)
 
 
@@ -54,7 +54,7 @@ def _ready_posts(root: Path) -> list[Post]:
 
 
 def next_post(root: Path) -> Post | None:
-    """Post 'ready' de menor id, ou None se a fila estiver vazia."""
+    """The 'ready' post with the lowest id, or None if the queue is empty."""
     posts = _ready_posts(root)
     return min(posts, key=lambda p: p.id) if posts else None
 
@@ -64,7 +64,7 @@ def count_ready(root: Path) -> int:
 
 
 def mark_published(root: Path, post: Post, linkedin_post_id: str) -> Path:
-    """Atualiza o frontmatter e move o arquivo para content/published/."""
+    """Update the frontmatter and move the file to content/published/."""
     meta = dict(post.meta)
     meta["status"] = "published"
     meta["published_at"] = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")

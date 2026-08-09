@@ -38,10 +38,10 @@ def test_mark_published_moves_and_updates(repo):
     assert republished.meta["status"] == "published"
     assert republished.meta["linkedin_post_id"] == "urn:li:share:42"
     assert "published_at" in republished.meta
-    assert "Legenda do post 001" in republished.body
+    assert "Caption of post 001" in republished.body
 
 
 def test_invalid_frontmatter_raises(repo):
-    (repo / "content/queue/bad.md").write_text("sem frontmatter", encoding="utf-8")
+    (repo / "content/queue/bad.md").write_text("no frontmatter", encoding="utf-8")
     with pytest.raises(ValueError, match="bad.md"):
         queue_store.next_post(repo)

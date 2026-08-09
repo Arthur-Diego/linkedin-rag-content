@@ -1,32 +1,32 @@
-# ADR-002 — Conteúdo pré-gerado e versionado (sem LLM em runtime)
+# ADR-002 — Pre-generated, versioned content (no LLM at runtime)
 
-- Status: aceito (2026-08-09, modo autônomo)
-- Domínio: CONTENT-PIPELINE
+- Status: accepted (2026-08-09, autonomous mode)
+- Domain: CONTENT-PIPELINE
 
-## Contexto
+## Context
 
-O plano original previa o Claude gerando o conteúdo dentro do job agendado. Chamar um
-LLM em runtime no CI exige API key da Anthropic (custo por token) ou integração do
-Claude Code Action com OAuth — mais partes móveis e custo potencial, contra o
-requisito de custo zero.
+The original plan had Claude generating the content inside the scheduled job.
+Calling an LLM at runtime in CI requires an Anthropic API key (cost per token) or a
+Claude Code Action integration with OAuth — more moving parts and potential cost,
+against the zero-cost requirement.
 
-## Decisão
+## Decision
 
-Manter uma **fila de posts pré-gerados** (`content/queue/NNN-slug.md`, markdown com
-frontmatter YAML) escrita pelo Claude Code **localmente, na conta do owner** (custo já
-coberto pela assinatura). O job agendado apenas consome a fila. O reabastecimento é
-guiado pelo prompt oficial em `scripts/PROMPT_GERACAO.md`, e uma issue automática avisa
-quando restarem ≤ 2 posts.
+Keep a **queue of pre-generated posts** (`content/queue/NNN-slug.md`, markdown with
+YAML frontmatter) written by Claude Code **locally, on the owner's account** (cost
+already covered by the subscription). The scheduled job only consumes the queue.
+Replenishment is guided by the official prompt in `scripts/PROMPT_GERACAO.md`, and an
+automatic issue warns when ≤ 2 posts remain.
 
-## Alternativas consideradas
+## Alternatives considered
 
-- **Claude API no CI** — rejeitada: custo por execução.
-- **claude-code-action com token OAuth no CI** — rejeitada por ora: configuração
-  adicional e dependência de credencial sensível no repo; pode virar evolução futura.
-- **Templates estáticos sem LLM** — rejeitada: qualidade de conteúdo insuficiente.
+- **Claude API in CI** — rejected: cost per run.
+- **claude-code-action with an OAuth token in CI** — rejected for now: extra setup and
+  a sensitive credential dependency in the repo; may become a future evolution.
+- **Static templates without an LLM** — rejected: insufficient content quality.
 
-## Consequências
+## Consequences
 
-- Humano no loop a cada ~3 semanas (rodar o prompt de reabastecimento) — aceitável.
-- Qualidade revisável: os posts ficam em PR/commit antes de irem ao ar.
-- O pipeline em si é 100% determinístico e testável.
+- Human in the loop every ~3 weeks (running the replenishment prompt) — acceptable.
+- Reviewable quality: posts sit in a PR/commit before going live.
+- The pipeline itself is 100% deterministic and testable.

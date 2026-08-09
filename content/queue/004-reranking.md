@@ -1,33 +1,34 @@
 ---
 id: "004"
 topic: reranking
-title: "Reranking: a segunda opinião que seu retrieval precisa"
+title: "Reranking: the second opinion your retrieval needs"
 image:
-  headline: "Reranking: precisão depois do recall"
+  headline: "Reranking: precision after recall"
   bullets:
-    - "Retrieval otimiza recall, reranker otimiza precisão"
-    - "Cross-encoder lê query + documento juntos"
-    - "Busque top-50, reranqueie, envie top-5"
-    - "Menos contexto lixo = menos alucinação"
-alt_text: "Card técnico sobre reranking em pipelines RAG"
+    - "Retrieval optimizes recall, rerankers optimize precision"
+    - "Cross-encoders read query + document together"
+    - "Fetch top-50, rerank, send top-5"
+    - "Less junk context = fewer hallucinations"
+  prompt: "Abstract illustration of glowing cards being sorted and reordered by priority, the top ones shining brighter, dark navy background with cyan accents, minimal futuristic style"
+alt_text: "Technical card about reranking in RAG pipelines"
 status: ready
 ---
-Seu retrieval devolve 20 documentos. Quantos são realmente relevantes? Se a resposta é "uns 5", você não tem um problema de busca — tem um problema de ranking.
+Your retrieval returns 20 documents. How many are actually relevant? If the answer is "about 5", you don't have a search problem — you have a ranking problem.
 
-A busca vetorial usa bi-encoders: query e documento viram vetores separadamente, e a comparação é uma conta de similaridade. É rápido o suficiente para varrer milhões de documentos, mas superficial — os dois textos nunca se "leem".
+Vector search uses bi-encoders: query and document become vectors separately, and comparison is just a similarity computation. Fast enough to scan millions of documents, but shallow — the two texts never actually "read" each other.
 
-O reranker é um cross-encoder: recebe query e documento JUNTOS e produz um score de relevância. É caro demais para rodar no corpus inteiro, mas perfeito para refinar uma lista curta.
+A reranker is a cross-encoder: it takes query and document TOGETHER and produces a relevance score. Far too expensive to run on the whole corpus, but perfect for refining a short list.
 
-O padrão que funciona:
+The pattern that works:
 
-1. Retrieval híbrido traz top-50 candidatos, otimizando recall.
-2. Reranker reordena esses 50, otimizando precisão.
-3. Só o top-5 entra no contexto do LLM.
+1. Hybrid retrieval brings the top-50 candidates, optimizing recall.
+2. The reranker reorders those 50, optimizing precision.
+3. Only the top-5 make it into the LLM context.
 
-O efeito colateral mais subestimado: menos lixo no contexto significa menos alucinação. O modelo não precisa adivinhar qual dos 20 trechos importa — os 5 que chegaram são os certos. E contexto menor ainda sai mais barato e mais rápido.
+The most underrated side effect: less junk in the context means fewer hallucinations. The model doesn't have to guess which of 20 passages matters — the 5 that arrived are the right ones. And a smaller context is also cheaper and faster.
 
-Para começar: os rerankers open source da família BGE rodam bem até em CPU para listas de 50 documentos. Custo de infra próximo de zero, ganho de qualidade visível no primeiro dia.
+Getting started: the open-source BGE rerankers run fine even on CPU for lists of 50 documents. Near-zero infra cost, visible quality gains on day one.
 
-Você usa reranking ou manda o retrieval cru para o modelo? 👇
+Do you rerank, or does raw retrieval go straight to your model? 👇
 
-#RAG #Reranking #IA #LLM #NLP
+#RAG #Reranking #LLM #AI #NLP

@@ -2,7 +2,7 @@ name: publish-linkedin
 
 on:
   schedule:
-    - cron: "30 11 * * 1,3,5"   # seg/qua/sex 08:30 BRT
+    - cron: "30 11 * * 1,3,5"   # Mon/Wed/Fri 08:30 BRT
   workflow_dispatch: {}
 
 permissions:
@@ -26,18 +26,19 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Instalar dependências
+      - name: Install dependencies
         run: |
           sudo apt-get install -y -q fonts-dejavu-core || true
           pip install -q -r requirements.txt
 
-      - name: Rodar pipeline
+      - name: Run pipeline
         id: pipeline
         env:
           LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: PYTHONPATH=src python -m linkedin_pipeline.run
 
-      - name: Commitar resultado (post publicado / artefatos de draft)
+      - name: Commit result (published post / draft artifacts)
         if: steps.pipeline.outputs.mode == 'published' || steps.pipeline.outputs.mode == 'draft'
         run: |
           git config user.name "linkedin-pipeline[bot]"
@@ -48,34 +49,34 @@ jobs:
             git push
           fi
 
-      - name: Abrir issue de draft (sem token configurado)
+      - name: Open draft issue (no token configured)
         if: steps.pipeline.outputs.mode == 'draft'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TITLE="Draft pronto: ${{ steps.pipeline.outputs.post_id }} — ${{ steps.pipeline.outputs.post_title }}"
+          TITLE="Draft ready: ${{ steps.pipeline.outputs.post_id }} — ${{ steps.pipeline.outputs.post_title }}"
           if [ -z "$(gh issue list --state open --search "\"$TITLE\" in:title" --json number --jq '.[0].number')" ]; then
             {
-              echo "Legenda pronta para colar no LinkedIn:"
+              echo "Caption ready to paste on LinkedIn:"
               echo
               echo '```'
               cat "${{ steps.pipeline.outputs.caption_path }}"
               echo '```'
               echo
-              echo "Imagem: \`${{ steps.pipeline.outputs.image_path }}\` (no repositório)."
+              echo "Image: \`${{ steps.pipeline.outputs.image_path }}\` (in the repository)."
               echo
-              echo "Para publicar automaticamente, configure o secret \`LINKEDIN_ACCESS_TOKEN\` (ver docs/operations/runbook.md)."
+              echo "To publish automatically, configure the \`LINKEDIN_ACCESS_TOKEN\` secret (see docs/operations/runbook.md)."
             } > /tmp/issue-body.md
             gh issue create --title "$TITLE" --body-file /tmp/issue-body.md
           fi
 
-      - name: Avisar fila baixa/vazia
+      - name: Warn about low/empty queue
         if: steps.pipeline.outputs.queue_empty == 'true' || steps.pipeline.outputs.queue_remaining <= 2
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TITLE="Fila de conteúdo baixa"
+          TITLE="Content queue running low"
           if [ -z "$(gh issue list --state open --search "\"$TITLE\" in:title" --json number --jq '.[0].number')" ]; then
             gh issue create --title "$TITLE" \
-              --body "Restam ${{ steps.pipeline.outputs.queue_remaining }} post(s) em content/queue/. Reabasteça com o prompt em scripts/PROMPT_GERACAO.md."
+              --body "Only ${{ steps.pipeline.outputs.queue_remaining }} post(s) left in content/queue/. Replenish using the prompt in scripts/PROMPT_GERACAO.md."
           fi

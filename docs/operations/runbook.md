@@ -1,39 +1,40 @@
-# Runbook — Operação do pipeline
+# Runbook — Pipeline operations
 
-## 1. Obter/renovar o token do LinkedIn (a cada ~50 dias)
+## 1. Obtain/renew the LinkedIn token (every ~50 days)
 
-1. Acesse https://www.linkedin.com/developers/apps → seu app (crie um, se primeiro
-   acesso; exige vincular a uma Company Page — pode criar uma página simples).
-2. Aba **Products**: adicione **Share on LinkedIn** e **Sign In with LinkedIn using
-   OpenID Connect** (aprovação instantânea).
-3. Aba **Auth** → role até **OAuth 2.0 tools** → **Token Generator**: selecione os
-   scopes `openid`, `profile`, `w_member_social` → gere o token (validade 60 dias).
-4. No repositório GitHub: Settings → Secrets and variables → Actions →
-   secret `LINKEDIN_ACCESS_TOKEN` → cole o token.
-5. Teste manual: aba Actions → workflow `publish-linkedin` → Run workflow.
+1. Go to https://www.linkedin.com/developers/apps → your app (create one on first
+   access; requires linking a Company Page — a simple page will do).
+2. **Products** tab: add **Share on LinkedIn** and **Sign In with LinkedIn using
+   OpenID Connect** (instant approval).
+3. **Auth** tab → scroll to **OAuth 2.0 tools** → **Token Generator**: select the
+   scopes `openid`, `profile`, `w_member_social` → generate the token (valid 60 days).
+4. In the GitHub repository: Settings → Secrets and variables → Actions →
+   secret `LINKEDIN_ACCESS_TOKEN` → paste the token.
+5. Manual test: Actions tab → `publish-linkedin` workflow → Run workflow.
 
-> Apps padrão não têm refresh token programático (recurso de parceiros aprovados).
-> Renovar manualmente é o caminho suportado. Agende um lembrete (~50 dias).
+> Standard apps have no programmatic refresh token (approved-partner feature).
+> Manual renewal is the supported path. Set a reminder (~50 days).
 
-## 2. Sintomas e correções
+## 2. Symptoms and fixes
 
-| Sintoma | Causa provável | Ação |
+| Symptom | Likely cause | Action |
 |---|---|---|
-| Job falha com `LinkedInError 401` | token expirado/ inválido | renovar token (seção 1) |
-| Job falha com `LinkedInError 422 CONTENT_DUPLICATE` | legenda idêntica a post recente | editar o post da fila |
-| Job falha com `LinkedInError 426/400` citando versão | `LinkedIn-Version` aposentada | atualizar variável `LINKEDIN_VERSION` no workflow para um `YYYYMM` ativo |
-| Issue "Fila de conteúdo baixa" | ≤ 2 posts ready | rodar `scripts/PROMPT_GERACAO.md` no Claude Code e commitar novos posts |
-| Post não saiu no horário | cron do GitHub é best-effort | conferir aba Actions; disparar manual se necessário |
-| Card sem a fonte bonita | DejaVu ausente no runner | não é falha; instalar `fonts-dejavu-core` no workflow |
+| Job fails with `LinkedInError 401` | expired/invalid token | renew the token (section 1) |
+| Job fails with `LinkedInError 422 CONTENT_DUPLICATE` | caption identical to a recent post | edit the queued post |
+| Job fails with `LinkedInError 426/400` citing the version | `LinkedIn-Version` retired | update the `LINKEDIN_VERSION` variable in the workflow to an active `YYYYMM` |
+| "Content queue running low" issue | ≤ 2 ready posts | run `scripts/PROMPT_GERACAO.md` in Claude Code and commit new posts |
+| Post didn't go out on time | GitHub's cron is best-effort | check the Actions tab; trigger manually if needed |
+| Card missing the nice font | DejaVu absent on the runner | not a failure; install `fonts-dejavu-core` in the workflow |
 
-## 3. Publicar manualmente um draft
+## 3. Publishing a draft manually
 
-Modo draft (sem token): a issue traz a legenda pronta e o caminho da imagem em `out/`.
-Copie a legenda, baixe a imagem do repositório e poste pelo app do LinkedIn. Depois
-mova o arquivo do post de `content/queue/` para `content/published/` mudando
-`status: published` (ou rode o pipeline com token configurado, que faz isso sozinho).
+Draft mode (no token): the issue carries the ready caption and the image path in
+`out/`. Copy the caption, download the image from the repository, and post via the
+LinkedIn app. Then move the post file from `content/queue/` to `content/published/`,
+changing `status: published` (or run the pipeline with a token configured, which does
+this on its own).
 
-## 4. Alterar horário/frequência
+## 4. Changing the schedule/frequency
 
-Editar o cron em `.github/workflows/publish.yml` (UTC). Padrão:
-`30 11 * * 1,3,5` = seg/qua/sex 08:30 BRT.
+Edit the cron in `.github/workflows/publish.yml` (UTC). Default:
+`30 11 * * 1,3,5` = Mon/Wed/Fri 08:30 BRT.

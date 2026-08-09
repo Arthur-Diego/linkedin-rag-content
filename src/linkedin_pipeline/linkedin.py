@@ -1,4 +1,4 @@
-"""Cliente mínimo da LinkedIn API versionada: userinfo, upload de imagem e post."""
+"""Minimal client for the versioned LinkedIn API: userinfo, image upload, post."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ class LinkedInError(RuntimeError):
 
 
 def escape_commentary(text: str) -> str:
-    """Escapa os caracteres reservados do formato little-text (mantém # e @)."""
+    """Escape little-text reserved characters (keeps # and @ intact)."""
     return "".join(f"\\{c}" if c in _RESERVED else c for c in text)
 
 
@@ -50,7 +50,7 @@ def upload_image(token: str, version: str, owner_urn: str, image_path: Path) -> 
     value = resp.json()["value"]
     up = requests.put(value["uploadUrl"], data=image_path.read_bytes(),
                       headers={"Authorization": f"Bearer {token}"}, timeout=120)
-    _check(up, "upload binário")
+    _check(up, "binary upload")
     return value["image"]
 
 
@@ -77,7 +77,7 @@ def create_post(token: str, version: str, author: str, commentary: str,
 
 def publish(token: str, version: str, caption: str, image_path: Path,
             alt_text: str) -> str:
-    """Fluxo completo: autor -> upload da imagem -> post. Retorna o id do post."""
+    """Full flow: author -> image upload -> post. Returns the post id."""
     author = get_person_urn(token)
     image_urn = upload_image(token, version, author, image_path)
     return create_post(token, version, author, caption, image_urn, alt_text)

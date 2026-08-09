@@ -1,31 +1,32 @@
 ---
 id: "001"
 topic: chunking
-title: "Chunking: o corte errado mata seu RAG"
+title: "Chunking: where most RAG pipelines die"
 image:
-  headline: "Chunking: onde a maioria dos RAGs morre"
+  headline: "Chunking: where most RAG pipelines die"
   bullets:
-    - "Tamanho fixo é baseline, não solução"
-    - "Respeite fronteiras semânticas: títulos, parágrafos, funções"
-    - "Overlap de 10-20% evita perder contexto na borda"
-    - "Meça retrieval antes de trocar de estratégia"
-alt_text: "Card técnico sobre estratégias de chunking em RAG"
+    - "Fixed-size is a baseline, not a solution"
+    - "Respect semantic boundaries: headings, paragraphs, functions"
+    - "10-20% overlap saves context at the edges"
+    - "Measure retrieval before switching strategies"
+  prompt: "Abstract illustration of a large document being split into glowing organized fragments and blocks, dark navy background with cyan accents, geometric minimal style"
+alt_text: "Technical card about chunking strategies in RAG"
 status: ready
 ---
-Seu RAG não está ruim por causa do modelo. Está ruim por causa do chunking.
+Your RAG isn't underperforming because of the model. It's underperforming because of your chunking.
 
-A maioria dos pipelines começa cortando documentos em blocos de 500 tokens com tamanho fixo. Funciona como baseline, mas tem um problema: o corte ignora a estrutura do documento. Uma tabela cortada ao meio, uma cláusula separada do seu título, uma função sem a assinatura — o retrieval até encontra o chunk, mas o modelo recebe um fragmento sem sentido.
+Most pipelines start by slicing documents into fixed 500-token blocks. Fine as a baseline, but there's a problem: the cut ignores document structure. A table split in half, a clause separated from its heading, a function without its signature — retrieval finds the chunk, but the model receives a fragment that makes no sense.
 
-Três upgrades que costumam pagar o esforço:
+Three upgrades that usually pay off:
 
-1. Chunking estrutural: corte respeitando títulos, seções e parágrafos. Markdown e HTML já te dão essas fronteiras de graça.
+1. Structure-aware chunking: split along headings, sections and paragraphs. Markdown and HTML give you these boundaries for free.
 
-2. Overlap de 10 a 20%: o contexto que vive na fronteira entre dois chunks deixa de se perder.
+2. 10-20% overlap: the context living at the border between two chunks stops getting lost.
 
-3. Metadados no chunk: título do documento, seção e data anexados ao texto. O embedding fica mais rico e o filtro fica possível.
+3. Metadata inside the chunk: document title, section and date attached to the text. Richer embeddings, and filtering becomes possible.
 
-E o mais importante: não troque de estratégia no escuro. Monte um conjunto pequeno de perguntas com resposta conhecida e meça o recall do retrieval antes e depois. Chunking se decide com número, não com intuição.
+Most important of all: never switch strategies blindly. Build a small set of questions with known answers and measure retrieval recall before and after. Chunking decisions are made with numbers, not intuition.
 
-Qual estratégia de chunking você usa hoje? 👇
+What chunking strategy are you using today? 👇
 
-#RAG #IA #LLM #NLP #EngenhariaDeIA
+#RAG #LLM #AI #MachineLearning #AIEngineering

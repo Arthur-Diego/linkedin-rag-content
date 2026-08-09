@@ -1,33 +1,34 @@
 ---
 id: "008"
-topic: cache semântico
-title: "Cache semântico: a otimização de custo mais ignorada em RAG"
+topic: semantic cache
+title: "Semantic caching: the most ignored cost optimization in RAG"
 image:
-  headline: "Cache semântico: pague uma vez, responda mil"
+  headline: "Semantic cache: pay once, answer a thousand times"
   bullets:
-    - "Perguntas repetidas dominam o tráfego real"
-    - "Cache por similaridade, não por igualdade"
-    - "Threshold errado = resposta errada com cara de certa"
-    - "Invalide quando o documento-fonte mudar"
-alt_text: "Card técnico sobre cache semântico em aplicações LLM"
+    - "Repeated questions dominate real traffic"
+    - "Cache by similarity, not string equality"
+    - "Wrong threshold = wrong answer served confidently"
+    - "Invalidate when the source document changes"
+  prompt: "Abstract illustration of caching and memory, layered translucent panels with glowing data streams being reused, dark navy background with cyan highlights, minimal futuristic style"
+alt_text: "Technical card about semantic caching in LLM applications"
 status: ready
 ---
-Olhe os logs do seu RAG em produção. Aposto que 30% das perguntas são variações das mesmas 50 dúvidas.
+Look at your RAG's production logs. I'd bet 30% of the questions are variations of the same 50 doubts.
 
-"Como emitir a segunda via?", "segunda via do boleto", "quero a 2ª via" — três strings diferentes, a mesma pergunta, três execuções completas do pipeline: retrieval, reranking, geração. Pagando LLM as três vezes.
+"How do I get a copy of my invoice?", "invoice copy", "resend my invoice" — three different strings, one question, three full pipeline runs: retrieval, reranking, generation. Paying the LLM all three times.
 
-Cache tradicional não resolve: a chave nunca bate, porque a string nunca é igual. Cache semântico compara por embedding — se a nova pergunta tem similaridade acima do threshold com uma pergunta já respondida, devolve a resposta guardada. Latência de segundos para milissegundos, custo de tokens para zero.
+Traditional caching doesn't help: the key never matches, because the string never repeats exactly. A semantic cache compares by embedding — if a new question is similar enough to one already answered, return the stored answer. Seconds become milliseconds; token cost becomes zero.
 
-As três decisões que separam um cache útil de uma fábrica de respostas erradas:
+The three decisions that separate a useful cache from a wrong-answer factory:
 
-1. Threshold conservador: comece alto, perto de 0.95. "Cancelar plano A" e "cancelar plano B" são vizinhos no espaço vetorial — e respostas diferentes. Falso positivo em cache é resposta errada entregue com confiança.
+1. A conservative threshold: start high, around 0.95. "Cancel plan A" and "cancel plan B" are neighbors in vector space — with different answers. A cache false positive is a wrong answer delivered with full confidence.
 
-2. Invalidação por fonte: guarde junto da resposta os documentos que a geraram. Documento atualizado, entradas derivadas expiram. Cache de RAG sem invalidação vira um museu de respostas desatualizadas.
+2. Source-based invalidation: store, next to each answer, the documents that produced it. Document updated → derived entries expire. A RAG cache without invalidation becomes a museum of outdated answers.
 
-3. Escopo por usuário ou tenant: respostas que dependem de permissão nunca podem vazar pelo cache global.
+3. Per-user or per-tenant scope: answers that depend on permissions must never leak through a global cache.
 
-É uma tarde de implementação — o embedding você já calcula de qualquer forma — e a conta do provedor de LLM agradece no fim do mês.
+It's an afternoon of implementation — you're already computing the embedding anyway — and your LLM bill will thank you at the end of the month.
 
-Seu pipeline responde a mesma pergunta quantas vezes por dia? 👇
+How many times a day does your pipeline answer the same question? 👇
 
-#RAG #IA #LLM #FinOps #EngenhariaDeIA
+#RAG #LLM #AI #FinOps #AIEngineering

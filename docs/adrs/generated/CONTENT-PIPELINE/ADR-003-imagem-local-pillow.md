@@ -1,32 +1,33 @@
-# ADR-003 — Imagem: renderização local com Pillow (não Napkin AI)
+# ADR-003 — Image: local rendering with Pillow (not Napkin AI)
 
-- Status: aceito (2026-08-09, modo autônomo)
-- Domínio: CONTENT-PIPELINE
+- Status: accepted (2026-08-09, autonomous mode)
+- Domain: CONTENT-PIPELINE
 
-## Contexto
+## Context
 
-O plano original usava a Napkin AI API para gerar o visual. A pesquisa
-(`docs/research/linkedin-napkin-apis.md`) mostrou que a API da Napkin está em
-developer preview e **consome créditos pagos** (free ≈ 3 visuais; planos US$9–22/mês)
-— incompatível com custo zero em automação contínua.
+The original plan used the Napkin AI API to generate the visuals. Research
+(`docs/research/linkedin-napkin-apis.md`) showed that Napkin's API is in developer
+preview and **consumes paid credits** (free ≈ 3 visuals; plans US$9–22/mo) —
+incompatible with zero cost in continuous automation.
 
-## Decisão
+## Decision
 
-Renderizar localmente um **card PNG 1200×1350** (proporção 4:5, ideal para feed) com
-**Pillow**: fundo em gradiente escuro, chip do tema, título grande, bullets e rodapé de
-branding. Cada post declara `image.headline` e `image.bullets` no frontmatter.
+Render a **1200×1350 PNG card** locally (4:5 ratio, ideal for the feed) with
+**Pillow**: dark gradient background, topic chip, large title, bullets, and a
+branding footer. Each post declares `image.headline` and `image.bullets` in its
+frontmatter.
 
-## Alternativas consideradas
+## Alternatives considered
 
-- **Napkin AI API** — rejeitada: custo em créditos.
-- **HTML→PNG via Playwright** — rejeitada: ~300 MB de browser no runner e mais lentidão
-  para ganho estético marginal; possível evolução futura.
-- **QuickChart/Kroki (hosted)** — rejeitada como padrão: dependência de serviço externo
-  com limites; estética de diagrama, não de card social.
+- **Napkin AI API** — rejected: costs credits.
+- **HTML→PNG via Playwright** — rejected: ~300 MB of browser on the runner and extra
+  slowness for marginal aesthetic gain; possible future evolution.
+- **QuickChart/Kroki (hosted)** — rejected as the default: external service dependency
+  with limits; diagram aesthetics, not social-card aesthetics.
 
-## Consequências
+## Consequences
 
-- Visual consistente e de marca própria, porém mais simples que ilustrações de IA.
-- Zero dependência externa: renderização roda offline e em qualquer runner.
-- Fonte tipográfica: DejaVu (presente no runner Ubuntu); fallback para fonte default
-  do Pillow.
+- Consistent, self-branded visuals, though simpler than AI illustrations.
+- Zero external dependencies: rendering runs offline and on any runner.
+- Typeface: DejaVu (present on the Ubuntu runner); falls back to Pillow's default
+  font.

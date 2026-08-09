@@ -1,89 +1,95 @@
-# HLD — Domínio content-pipeline
+# HLD — content-pipeline domain
 
-> Aprovado em 2026-08-09 (modo autônomo). Fonte de negócio: `docs/prd.md`.
+> Approved 2026-08-09 (autonomous mode). Business source: `docs/prd.md`.
 
-## 1. Visão
+## 1. Vision
 
-Um job agendado (GitHub Actions, cron seg/qua/sex) consome uma fila de posts
-versionada no git, renderiza a imagem do post localmente e publica no LinkedIn.
-Não há servidor, banco ou serviço 24/7: **o repositório é o sistema**.
+A scheduled job (GitHub Actions, Mon/Wed/Fri cron) consumes a queue of posts
+versioned in git, renders the post image locally, and publishes to LinkedIn.
+There is no server, database, or 24/7 service: **the repository is the system**.
 
-## 2. Arquitetura
+## 2. Architecture
 
 ```
-GitHub Actions (cron 3x/semana ou disparo manual)
+GitHub Actions (cron 3x/week or manual trigger)
   └─ python -m linkedin_pipeline.run
-       ├─ queue_store: lê content/queue/, pega o post de menor id
-       ├─ renderer:    gera out/<id>.png (Pillow, template de card)
-       ├─ linkedin:    com LINKEDIN_ACCESS_TOKEN →
-       │                 1. GET  /v2/userinfo            (URN do membro)
+       ├─ queue_store: reads content/queue/, picks the post with the lowest id
+       ├─ ai_renderer: optional gpt-image-1 background (OPENAI_API_KEY set;
+       │               any failure falls back to the local gradient)
+       ├─ renderer:    generates out/<id>.png (Pillow, card template)
+       ├─ linkedin:    with LINKEDIN_ACCESS_TOKEN →
+       │                 1. GET  /v2/userinfo            (member URN)
        │                 2. POST /rest/images?action=initializeUpload
-       │                 3. PUT  <uploadUrl>              (binário do PNG)
-       │                 4. POST /rest/posts              (post + imagem)
-       │               sem token → modo draft:
-       │                 gh issue com legenda pronta + imagem commitada
-       ├─ queue_store: move o post para content/published/
-       └─ (step do workflow) commit/push do resultado em main
+       │                 3. PUT  <uploadUrl>              (PNG binary)
+       │                 4. POST /rest/posts              (post + image)
+       │               without a token → draft mode:
+       │                 gh issue with the ready caption + committed image
+       ├─ queue_store: moves the post to content/published/
+       └─ (workflow step) commit/push of the result to main
 ```
 
-## 3. Componentes
+## 3. Components
 
-| Componente | Responsabilidade | Tecnologia |
+| Component | Responsibility | Technology |
 |---|---|---|
-| Fila de conteúdo | posts pendentes/publicados, formato frontmatter | git (`content/`) |
-| `queue_store` | selecionar próximo post, mover para published | Python + PyYAML |
-| `renderer` | card PNG 1200×1350 (título, bullets, rodapé) | Pillow |
-| `linkedin` | upload de imagem + criação do post (API versionada) | requests |
-| `run` | orquestração, CLI (`--dry-run`), modo draft | Python argparse |
-| Agendador | cron + `workflow_dispatch` + commit do resultado | GitHub Actions |
-| Abastecimento | geração de novos posts com Claude Code (humano no loop) | prompt em `scripts/` |
+| Content queue | pending/published posts, frontmatter format | git (`content/`) |
+| `queue_store` | select the next post, move it to published | Python + PyYAML |
+| `renderer` | 1200×1350 PNG card (title, bullets, footer) | Pillow |
+| `ai_renderer` | optional textless AI background (ADR-006) | OpenAI gpt-image-1 |
+| `linkedin` | image upload + post creation (versioned API) | requests |
+| `run` | orchestration, CLI (`--dry-run`), draft mode | Python argparse |
+| Scheduler | cron + `workflow_dispatch` + result commit | GitHub Actions |
+| Replenishment | generating new posts with Claude Code (human in the loop) | prompt in `scripts/` |
 
-## 4. Fluxos principais
+## 4. Main flows
 
-**Publicação (feliz)**: cron dispara → próximo post da fila → render PNG →
-upload imagem → cria post → move para `published/` → commit
-`publish(<mode>): <id> <título>` (feito por step do workflow, também no modo draft).
+**Publish (happy path)**: cron fires → next post from the queue → render PNG →
+upload image → create post → move to `published/` → commit
+`publish(<mode>): <id> <title>` (done by a workflow step, also in draft mode).
 
-**Draft (sem token)**: mesmos passos de seleção e render; em vez de chamar a API,
-abre issue no repositório com a legenda pronta para copiar e o caminho da imagem;
-o post permanece na fila (não é consumido) até ser publicado de fato ou movido
-manualmente.
+**Draft (no token)**: same selection and render steps; instead of calling the API,
+opens an issue in the repository with the caption ready to copy and the image path;
+the post stays in the queue (is not consumed) until it is actually published or
+moved manually.
 
-**Fila baixa/vazia** (`queue_remaining ≤ 2` ou vazia): job termina com sucesso e abre a
-issue `Fila de conteúdo baixa` — apenas se ainda não houver uma aberta — pedindo
-reabastecimento (prompt em `scripts/PROMPT_GERACAO.md`).
+**Low/empty queue** (`queue_remaining ≤ 2` or empty): the job finishes successfully and
+opens the `Content queue running low` issue — only if one isn't already open — asking
+for replenishment (prompt in `scripts/PROMPT_GERACAO.md`).
 
-**Token expirado (~60 dias)**: chamada retorna 401 → job falha com mensagem clara →
-runbook `docs/operations/runbook.md` descreve a renovação.
+**Expired token (~60 days)**: the call returns 401 → job fails with a clear message →
+the runbook `docs/operations/runbook.md` describes the renewal.
 
-## 5. Contratos externos consumidos
+## 5. External contracts consumed
 
-- LinkedIn API versionada (`LinkedIn-Version: 2xxxxx`): `/v2/userinfo`,
+- OpenAI Images API (`POST /v1/images/generations`, model gpt-image-1) — optional,
+  only when `OPENAI_API_KEY` is set; the only paid component (~US$0.5–2/month).
+- Versioned LinkedIn API (`LinkedIn-Version: 2xxxxx`): `/v2/userinfo`,
   `/rest/images?action=initializeUpload`, `/rest/posts`. Auth: OAuth 2.0 member token
-  com scopes `openid profile w_member_social`. Gratuita para publicar no próprio perfil.
-- GitHub: `gh` CLI no runner (issues) e git puro para commit/push. Auth: `GITHUB_TOKEN`
-  do workflow.
+  with scopes `openid profile w_member_social`. Free for publishing to one's own profile.
+- GitHub: `gh` CLI on the runner (issues) and plain git for commit/push. Auth: the
+  workflow's `GITHUB_TOKEN`.
 
-## 6. Decisões estruturais (→ ADRs)
+## 6. Structural decisions (→ ADRs)
 
-1. Agendador: GitHub Actions cron — ADR-001
-2. Conteúdo pré-gerado versionado (sem LLM em runtime) — ADR-002
-3. Imagem local com Pillow (não Napkin AI) — ADR-003
-4. Publicação: LinkedIn Posts API + modo draft como fallback — ADR-004
-5. Estado no git (sem banco) — ADR-005
+1. Scheduler: GitHub Actions cron — ADR-001
+2. Pre-generated, versioned content (no LLM at runtime) — ADR-002
+3. Local image with Pillow (not Napkin AI) — ADR-003
+4. Publishing: LinkedIn Posts API + draft mode as fallback — ADR-004
+5. State in git (no database) — ADR-005
+6. Optional AI card background via gpt-image-1, Pillow text overlay — ADR-006
 
-## 7. Observabilidade e operação
+## 7. Observability and operations
 
-- Log do job = log do GitHub Actions; falha de API derruba o job (visível + e-mail
-  do GitHub ao owner).
-- Issues do repo como canal de notificação (draft pronto / fila vazia).
-- Runbook de tokens e troubleshooting em `docs/operations/runbook.md`.
+- Job log = GitHub Actions log; an API failure brings the job down (visible + GitHub
+  e-mail to the owner).
+- Repo issues as the notification channel (draft ready / empty queue).
+- Token runbook and troubleshooting in `docs/operations/runbook.md`.
 
-## 8. Riscos
+## 8. Risks
 
-| Risco | Mitigação |
+| Risk | Mitigation |
 |---|---|
-| Token LinkedIn expira em ~60 dias | falha alta + runbook de renovação; issue lembrete |
-| LinkedIn mudar versão da API | `LINKEDIN_VERSION` parametrizada em um só lugar |
-| Fila esvaziar sem aviso | issue automática quando restar ≤ 2 posts |
-| Cron do GitHub atrasar (best-effort) | tolerável para rede social; `workflow_dispatch` manual |
+| LinkedIn token expires in ~60 days | loud failure + renewal runbook; reminder issue |
+| LinkedIn changes the API version | `LINKEDIN_VERSION` parameterized in a single place |
+| Queue drains without warning | automatic issue when ≤ 2 posts remain |
+| GitHub cron runs late (best-effort) | tolerable for social media; manual `workflow_dispatch` |

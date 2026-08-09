@@ -1,10 +1,11 @@
 # Gitflow
 
-Projeto solo com automação de CI que também commita. Fluxo simples:
+Solo project with CI automation that also commits. Simple flow:
 
-- Branch principal: `main`. É a branch publicada e a que o cron executa.
-- Trabalho humano relevante: branch curta `feat/<nome>` → PR → merge em `main`.
-  Ajustes pequenos (fila de conteúdo, docs) podem ir direto em `main`.
-- O workflow de publicação commita em `main` (move post de `content/queue/` para
-  `content/published/` e salva a imagem em `out/`). Mensagem: `publish: <id> <título>`.
-- Nunca reescrever histórico de `main` (o bot depende de fast-forward).
+- Main branch: `main`. It is the published branch and the one the cron runs against.
+- Substantial human work: short-lived `feat/<name>` branch → PR → merge into `main`.
+  Small changes (content queue, docs) may go straight to `main`.
+- The publish workflow commits to `main` (moves the post from `content/queue/` to
+  `content/published/` and saves the image to `out/`). Message:
+  `publish(<mode>): <id> <title>`.
+- Never rewrite `main`'s history (the bot depends on fast-forward).

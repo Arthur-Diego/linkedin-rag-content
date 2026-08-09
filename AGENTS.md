@@ -1,11 +1,13 @@
 # AGENTS
 
-Guia para agentes de IA trabalhando neste repositório. O índice completo de contexto
-está em `CLAUDE.md` — leia-o primeiro; todo contexto vive em `docs/`.
+Guide for AI agents working in this repository. The full context index is in
+`CLAUDE.md` — read it first; all context lives in `docs/`.
 
-Regras essenciais:
-- Custo zero em runtime (sem APIs pagas).
-- Não reescrever histórico de `main` (o bot de publicação commita nela).
-- Novos posts seguem o formato frontmatter descrito no FDD
+Essential rules:
+- Zero runtime cost (the only allowed paid piece is the optional AI background,
+  ADR-006, which must always fall back to the local gradient).
+- Never rewrite `main`'s history (the publishing bot commits to it).
+- New posts follow the frontmatter format described in the FDD
   (`docs/domains/content-pipeline/features/001-pipeline-publicacao-fdd.md`).
-- Validar com `python -m pytest tests/ -q` antes de finalizar.
+- All content, code, and docs in English.
+- Validate with `python -m pytest tests/ -q` before finishing.

@@ -1,17 +1,18 @@
-"""Renderiza o card PNG do post (1200x1350) com Pillow."""
+"""Renders the post card PNG (1200x1350) with Pillow."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 WIDTH, HEIGHT = 1200, 1350
 MARGIN = 90
 BG_TOP, BG_BOTTOM = (11, 18, 32), (16, 27, 51)
+OVERLAY_ALPHA = 150  # darkening over AI backgrounds so text stays readable
 ACCENT = (56, 189, 248)
 TEXT = (237, 242, 247)
-MUTED = (148, 163, 184)
+MUTED = (172, 184, 204)
 
 _FONT_DIRS = [
     "/usr/share/fonts/truetype/dejavu",
@@ -57,14 +58,28 @@ def _gradient() -> Image.Image:
     return img
 
 
-def render_card(post, out_path: Path) -> Path:
-    """Gera o PNG do card a partir do frontmatter (image.headline, image.bullets)."""
+def _prepare_background(background: Image.Image | None) -> Image.Image:
+    if background is None:
+        return _gradient()
+    img = ImageOps.fit(background.convert("RGB"), (WIDTH, HEIGHT), Image.LANCZOS)
+    overlay = Image.new("RGB", (WIDTH, HEIGHT), BG_TOP)
+    mask = Image.new("L", (WIDTH, HEIGHT), OVERLAY_ALPHA)
+    img.paste(overlay, (0, 0), mask)
+    return img
+
+
+def render_card(post, out_path: Path, background: Image.Image | None = None) -> Path:
+    """Render the card from the frontmatter (image.headline, image.bullets).
+
+    `background` is an optional AI-generated illustration; without it, the
+    default gradient is used.
+    """
     image_meta = post.meta.get("image") or {}
     headline = image_meta.get("headline") or post.title
     bullets = image_meta.get("bullets") or []
     topic = str(post.meta.get("topic", "RAG")).upper()
 
-    img = _gradient()
+    img = _prepare_background(background)
     draw = ImageDraw.Draw(img)
     content_width = WIDTH - 2 * MARGIN
 
@@ -96,9 +111,9 @@ def render_card(post, out_path: Path) -> Path:
         y += 26
 
     footer_font = _font(False, 34)
-    footer = "Arthur Diego  ·  RAG na prática"
+    footer = "Arthur Diego  ·  RAG in practice"
     fy = HEIGHT - MARGIN - 40
-    draw.line([MARGIN, fy - 30, WIDTH - MARGIN, fy - 30], fill=(45, 58, 84), width=2)
+    draw.line([MARGIN, fy - 30, WIDTH - MARGIN, fy - 30], fill=(72, 86, 112), width=2)
     draw.text((MARGIN, fy), footer, font=footer_font, fill=MUTED)
     num = f"#{post.id}"
     draw.text((WIDTH - MARGIN - draw.textlength(num, font=footer_font), fy),

@@ -1,33 +1,34 @@
 ---
 id: "006"
-topic: avaliação
-title: "Avaliação de RAG: sem métrica, todo pipeline parece bom"
+topic: evaluation
+title: "RAG evaluation: without metrics, every pipeline looks good"
 image:
-  headline: "Como saber se seu RAG melhorou?"
+  headline: "How do you know your RAG got better?"
   bullets:
-    - "Demo que funciona não é métrica"
-    - "Meça retrieval e geração separados"
-    - "50 perguntas reais com resposta conhecida"
-    - "LLM-as-judge com rubrica fechada"
-alt_text: "Card técnico sobre avaliação de sistemas RAG"
+    - "A working demo is not a metric"
+    - "Measure retrieval and generation separately"
+    - "50 real questions with known answers"
+    - "LLM-as-judge with a fixed rubric"
+  prompt: "Abstract illustration of precision measurement, glowing gauges rulers and data charts floating in space, dark navy background with cyan accents, minimal futuristic style"
+alt_text: "Technical card about evaluating RAG systems"
 status: ready
 ---
-"Testei aqui e respondeu certo" — assim morrem os RAGs em produção.
+"I tested it and it answered correctly" — that's how RAG systems die in production.
 
-Sem um conjunto de avaliação, cada mudança no pipeline é um chute. Você troca o chunking, a demo parece melhor, faz o deploy — e descobre semanas depois que o recall caiu para metade das perguntas que ninguém testou.
+Without an evaluation set, every pipeline change is a guess. You tweak the chunking, the demo feels better, you ship — and weeks later discover that recall dropped for half the questions nobody tested.
 
-O kit mínimo de avaliação que defendo:
+The minimum evaluation kit I stand behind:
 
-1. Golden set: 50 a 100 perguntas REAIS — tiradas de logs, tickets, dúvidas de usuários — com resposta correta e documento-fonte anotados. Um dia de trabalho que vira o ativo mais valioso do projeto.
+1. A golden set: 50-100 REAL questions — pulled from logs, tickets, user chats — with the correct answer and source document annotated. One day of work that becomes the most valuable asset in the project.
 
-2. Métricas de retrieval separadas da geração: recall@k e MRR respondem "o documento certo chegou?". Se o retrieval falhou, nem adianta olhar a resposta final. A maioria dos problemas de RAG morre aqui.
+2. Retrieval metrics separate from generation: recall@k and MRR answer "did the right document arrive?". If retrieval failed, don't even bother judging the final answer. Most RAG problems die right here.
 
-3. Métricas de geração: fidelidade ao contexto e completude, avaliadas por um LLM juiz com rubrica fechada — nota de 1 a 5 com critérios escritos, não "avalie esta resposta". Frameworks como RAGAS já estruturam isso.
+3. Generation metrics: faithfulness to the context and completeness, scored by an LLM judge with a closed rubric — a 1-5 scale with written criteria, not "rate this answer". Frameworks like RAGAS already structure this.
 
-4. Regressão a cada mudança: mexeu no prompt, no chunking, no modelo? Roda o golden set de novo. É CI para qualidade de resposta.
+4. Regression on every change: touched the prompt, the chunking, the model? Re-run the golden set. It's CI for answer quality.
 
-A regra de ouro: primeiro instrumente, depois otimize. Otimização sem medição é só movimento.
+The golden rule: instrument first, optimize second. Optimization without measurement is just motion.
 
-Seu RAG tem golden set ou está no modo "testei aqui e funcionou"? 👇
+Does your RAG have a golden set, or is it still in "works on my machine" mode? 👇
 
-#RAG #IA #LLM #MLOps #Qualidade
+#RAG #LLM #AI #MLOps #AIEngineering

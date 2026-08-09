@@ -1,30 +1,30 @@
-# ADR-001 — Agendador: GitHub Actions cron
+# ADR-001 — Scheduler: GitHub Actions cron
 
-- Status: aceito (2026-08-09, modo autônomo)
-- Domínio: CONTENT-PIPELINE
+- Status: accepted (2026-08-09, autonomous mode)
+- Domain: CONTENT-PIPELINE
 
-## Contexto
+## Context
 
-O pipeline precisa rodar 3x/semana sem servidor próprio e sem custo (PRD).
+The pipeline must run 3x/week with no server of its own and at no cost (PRD).
 
-## Decisão
+## Decision
 
-Usar **GitHub Actions** com `schedule` (cron seg/qua/sex 11:30 UTC ≈ 08:30 BRT) e
-`workflow_dispatch` para execução manual, em **repositório público** (minutos
-ilimitados de Actions).
+Use **GitHub Actions** with `schedule` (cron Mon/Wed/Fri 11:30 UTC ≈ 08:30 BRT) and
+`workflow_dispatch` for manual runs, on a **public repository** (unlimited Actions
+minutes).
 
-## Alternativas consideradas
+## Alternatives considered
 
-- **Cron em máquina local (WSL2)** — rejeitada: máquina precisa estar ligada; frágil.
-- **Cloud scheduler (AWS/GCP)** — rejeitada: exige conta cloud, cartão e infraestrutura
-  para um job de 1 minuto.
-- **Rotinas agendadas do Claude Code (cloud)** — rejeitada como agendador primário:
-  acopla a publicação à conta Claude; Actions é mais simples de observar e depurar.
+- **Cron on a local machine (WSL2)** — rejected: the machine must be powered on; fragile.
+- **Cloud scheduler (AWS/GCP)** — rejected: requires a cloud account, credit card, and
+  infrastructure for a 1-minute job.
+- **Claude Code scheduled routines (cloud)** — rejected as the primary scheduler:
+  couples publishing to the Claude account; Actions is easier to observe and debug.
 
-## Consequências
+## Consequences
 
-- Cron do GitHub é best-effort (atrasos de minutos) — aceitável para rede social.
-- O workflow precisa de `permissions: contents: write, issues: write` para commitar
-  o resultado e abrir issues.
-- Repo público expõe a fila de posts futuros — aceito (conteúdo será público de
-  qualquer forma).
+- GitHub's cron is best-effort (delays of minutes) — acceptable for social media.
+- The workflow needs `permissions: contents: write, issues: write` to commit the
+  result and open issues.
+- A public repo exposes the queue of upcoming posts — accepted (the content will be
+  public anyway).

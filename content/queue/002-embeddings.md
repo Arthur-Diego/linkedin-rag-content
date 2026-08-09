@@ -1,33 +1,34 @@
 ---
 id: "002"
 topic: embeddings
-title: "Embeddings: o modelo importa menos do que você pensa"
+title: "Embeddings: the model matters less than you think"
 image:
-  headline: "Embeddings em RAG: 4 decisões que importam"
+  headline: "Embeddings in RAG: 4 decisions that matter"
   bullets:
-    - "Benchmark público não é o seu domínio"
-    - "Dimensão maior = custo maior, nem sempre ganho"
-    - "Normalize e fixe a métrica de distância"
-    - "Reindexar tudo a cada troca de modelo"
-alt_text: "Card técnico sobre escolha de modelos de embedding em RAG"
+    - "Public benchmarks are not your domain"
+    - "Bigger dimensions = bigger cost, not always gains"
+    - "Normalize and fix your distance metric"
+    - "Changed models? Reindex everything"
+  prompt: "Abstract 3D vector space with glowing points clustering in constellations, depth and perspective, dark navy background with cyan and blue gradients, minimal futuristic style"
+alt_text: "Technical card about choosing embedding models for RAG"
 status: ready
 ---
-Todo mundo pergunta qual é o melhor modelo de embedding. Quase ninguém pergunta o que realmente importa: como ele se comporta no SEU domínio.
+Everyone asks which embedding model is best. Almost nobody asks the question that matters: how does it behave on YOUR domain?
 
-O ranking do MTEB é um ótimo ponto de partida — e um péssimo ponto de chegada. Um modelo campeão em benchmark genérico pode tropeçar em jargão jurídico, código-fonte ou português técnico. A única resposta confiável vem de um teste com seus próprios documentos e suas próprias perguntas.
+The MTEB leaderboard is a great starting point — and a terrible finish line. A model that wins on generic benchmarks can stumble on legal jargon, source code, or non-English text. The only trustworthy answer comes from testing with your own documents and your own questions.
 
-O que eu avalio antes de escolher:
+What I evaluate before choosing:
 
-1. Idioma: seu corpus é em português? Modelos multilíngues variam muito de qualidade entre idiomas.
+1. Language: is your corpus multilingual? Model quality varies wildly across languages.
 
-2. Dimensão do vetor: 3072 dimensões custam mais em storage e latência que 768. Se o ganho de recall for de 1%, não paga.
+2. Vector dimension: 3072 dimensions cost more in storage and latency than 768. If the recall gain is 1%, it doesn't pay.
 
-3. Janela de contexto do embedding: chunks maiores que o limite são truncados silenciosamente — e você nunca fica sabendo.
+3. The embedding context window: chunks longer than the limit get silently truncated — and you'll never get an error about it.
 
-4. Consistência: trocou de modelo? Reindexe TUDO. Vetores de modelos diferentes no mesmo índice é bug garantido e silencioso.
+4. Consistency: switched models? Reindex EVERYTHING. Vectors from different models in the same index is a silent, guaranteed bug.
 
-Regra prática: escolha 2 ou 3 candidatos, rode nos seus dados com 50 perguntas reais e meça recall@k. Uma tarde de trabalho que evita meses de retrieval medíocre.
+Practical rule: pick 2-3 candidates, run them on your data with 50 real questions, measure recall@k. One afternoon of work that saves months of mediocre retrieval.
 
-Você já mediu o recall do seu retrieval ou está confiando no benchmark? 👇
+Have you actually measured your retrieval recall, or are you trusting the benchmark? 👇
 
-#RAG #Embeddings #IA #LLM #VectorSearch
+#RAG #Embeddings #LLM #AI #VectorSearch

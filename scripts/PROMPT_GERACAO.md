@@ -1,27 +1,30 @@
-# Prompt oficial — reabastecer a fila de conteúdo
+# Official prompt — replenish the content queue
 
-Quando a issue "Fila de conteúdo baixa" aparecer (ou quando quiser renovar a pauta),
-abra o Claude Code na raiz deste repositório e cole o prompt abaixo. Custo: coberto
-pela assinatura do Claude — nada de API paga.
+When the "Content queue running low" issue shows up (or whenever you want fresh
+topics), open Claude Code at the root of this repository and paste the prompt below.
+Cost: covered by your Claude subscription — no paid API involved.
 
 ---
 
-Leia `content/published/` e `content/queue/` para ver os temas já cobertos e o formato
-dos posts. Depois crie N novos posts sobre RAG em `content/queue/`, continuando a
-numeração dos ids.
+Read `content/published/` and `content/queue/` to see the topics already covered and
+the post format. Then create N new posts about RAG in `content/queue/`, continuing
+the id numbering.
 
-Regras:
+Rules:
 
-1. Formato idêntico aos existentes: frontmatter YAML com `id` (string de 3 dígitos),
-   `topic`, `title`, `image.headline`, `image.bullets` (3 a 4 bullets curtos),
-   `alt_text` e `status: ready`; corpo = legenda do LinkedIn.
-2. Legenda em português brasileiro: gancho forte na primeira linha, 3 a 5 parágrafos
-   curtos ou lista numerada, insight prático de produção (não teoria de tutorial),
-   pergunta de engajamento no final e 5 hashtags.
-3. Temas: aprofundar ou complementar os já publicados sem repetir ângulo. Sugestões de
-   pauta: chunking avançado, fine-tuning de embeddings, RAG multimodal, segurança e
-   permissões em RAG, RAG vs long-context, contextual retrieval, avaliação contínua,
-   arquiteturas de produção, casos reais de falha.
-4. Nomes de arquivo: `NNN-slug.md`.
-5. Ao final, rode `python -m pytest tests/ -q` e valide um `--dry-run`; depois commite
-   com a mensagem `content: +N posts na fila`.
+1. Format identical to the existing posts: YAML frontmatter with `id` (3-digit
+   string), `topic`, `title`, `image.headline`, `image.bullets` (3-4 short bullets),
+   optional `image.prompt` (visual prompt for AI background generation — abstract
+   illustration description, always textless), `alt_text`, and `status: ready`;
+   body = the LinkedIn caption.
+2. Caption in ENGLISH (target audience: international recruiters and engineers):
+   strong hook in the first line, 3-5 short paragraphs or a numbered list,
+   production-grade practical insight (not tutorial theory), an engagement question
+   at the end, and 5 hashtags.
+3. Topics: deepen or complement what's already published without repeating angles.
+   Backlog ideas: advanced chunking, embedding fine-tuning, multimodal RAG, security
+   and permissions in RAG, RAG vs long-context, contextual retrieval, continuous
+   evaluation, production architectures, real failure stories.
+4. File names: `NNN-slug.md`.
+5. When done, run `python -m pytest tests/ -q`, validate with a `--dry-run`, then
+   commit with the message `content: +N posts in the queue`.

@@ -1,29 +1,30 @@
 ---
 id: "003"
 topic: hybrid search
-title: "Hybrid search: por que só vetor não basta"
+title: "Hybrid search: why vectors alone aren't enough"
 image:
-  headline: "Busca híbrida: vetor + BM25"
+  headline: "Hybrid search: vectors + BM25"
   bullets:
-    - "Vetores erram códigos, siglas e nomes exatos"
-    - "BM25 erra sinônimos e paráfrases"
-    - "RRF combina os dois sem tuning"
-    - "É o upgrade mais barato do seu retrieval"
-alt_text: "Card técnico sobre busca híbrida combinando vetores e BM25"
+    - "Vectors miss exact codes, acronyms and names"
+    - "BM25 misses synonyms and paraphrases"
+    - "RRF combines both with zero tuning"
+    - "The cheapest retrieval upgrade you can ship"
+  prompt: "Two abstract streams of light, one geometric and structured, one organic and flowing, merging into a single beam, dark navy background with cyan accents, minimal futuristic style"
+alt_text: "Technical card about hybrid search combining vectors and BM25"
 status: ready
 ---
-Busca vetorial encontra o que você quis dizer. Busca lexical encontra o que você escreveu. Seu RAG precisa das duas.
+Vector search finds what you meant. Lexical search finds what you typed. Your RAG needs both.
 
-O caso clássico: o usuário pergunta pelo erro "ORA-01555" ou pelo contrato "CT-2024-0087". A busca vetorial devolve documentos semanticamente parecidos — mas não O documento, porque código exato não é semântica. O BM25 acha na primeira posição.
+The classic case: a user asks about error "ORA-01555" or contract "CT-2024-0087". Vector search returns semantically similar documents — but not THE document, because an exact code isn't semantics. BM25 nails it in first position.
 
-O caso inverso também existe: o usuário pergunta "como cancelar a assinatura" e o documento diz "rescisão do plano". O BM25 não vê sobreposição de termos. O vetor entende na hora.
+The reverse case exists too: the user asks "how to cancel my subscription" and the document says "plan termination". BM25 sees zero term overlap. Vectors get it instantly.
 
-A solução é rodar as duas buscas e fundir os resultados. O jeito mais simples e surpreendentemente eficaz: Reciprocal Rank Fusion. A fórmula cabe num tweet — cada documento ganha pontos pela posição em cada ranking, soma-se tudo. Sem pesos para calibrar, sem normalização de score entre sistemas diferentes.
+The fix is running both searches and fusing the results. The simplest, surprisingly effective method: Reciprocal Rank Fusion. The formula fits in a tweet — each document scores points based on its rank in each list, then you sum. No weights to calibrate, no score normalization across different systems.
 
-Bônus: praticamente todo vector store moderno já suporta busca híbrida nativa — Qdrant, Weaviate, OpenSearch, pgvector com tsvector do Postgres. É configuração, não projeto.
+Bonus: virtually every modern vector store already ships hybrid search natively — Qdrant, Weaviate, OpenSearch, pgvector with Postgres tsvector. It's configuration, not a project.
 
-Se você só tem busca vetorial hoje, hybrid search é provavelmente o maior ganho de retrieval por hora de trabalho investida.
+If you only run vector search today, hybrid search is probably the biggest retrieval gain per hour of work you can get.
 
-Seu RAG já é híbrido? 👇
+Is your RAG hybrid yet? 👇
 
-#RAG #HybridSearch #IA #LLM #InformationRetrieval
+#RAG #HybridSearch #LLM #AI #InformationRetrieval

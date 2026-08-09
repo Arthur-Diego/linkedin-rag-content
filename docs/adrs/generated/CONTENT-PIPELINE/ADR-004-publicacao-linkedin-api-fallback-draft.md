@@ -1,33 +1,33 @@
-# ADR-004 — Publicação: LinkedIn Posts API com modo draft como fallback
+# ADR-004 — Publishing: LinkedIn Posts API with draft mode as fallback
 
-- Status: aceito (2026-08-09, modo autônomo)
-- Domínio: CONTENT-PIPELINE
+- Status: accepted (2026-08-09, autonomous mode)
+- Domain: CONTENT-PIPELINE
 
-## Contexto
+## Context
 
-Publicar exige a API oficial do LinkedIn (gratuita, mas com setup manual: app no
-Developer Portal + token OAuth de 60 dias sem refresh programático para apps padrão).
-O sistema precisa ser útil hoje, antes desse setup.
+Publishing requires LinkedIn's official API (free, but with manual setup: an app in
+the Developer Portal + a 60-day OAuth token with no programmatic refresh for standard
+apps). The system must be useful today, before that setup.
 
-## Decisão
+## Decision
 
-Publicar via **LinkedIn Posts API versionada** (`/rest/posts` + `/rest/images`,
-header `LinkedIn-Version` parametrizado) quando `LINKEDIN_ACCESS_TOKEN` estiver
-configurado como secret. **Sem token, operar em modo draft**: renderiza a imagem,
-commita em `out/` e abre uma issue no GitHub com a legenda pronta para colar —
-o post continua na fila.
+Publish via the **versioned LinkedIn Posts API** (`/rest/posts` + `/rest/images`,
+parameterized `LinkedIn-Version` header) when `LINKEDIN_ACCESS_TOKEN` is configured
+as a secret. **Without a token, operate in draft mode**: render the image, commit it
+to `out/`, and open a GitHub issue with the caption ready to paste — the post stays
+in the queue.
 
-## Alternativas consideradas
+## Alternatives considered
 
-- **Agendadores third-party (Buffer etc.)** — rejeitada: free tiers limitados,
-  credencial de terceiros, menos controle.
-- **Automação de browser (selenium) no LinkedIn** — rejeitada: viola ToS, risco de
-  bloqueio da conta.
-- **Somente draft (sem API)** — rejeitada como estado final: não atende "automático".
+- **Third-party schedulers (Buffer etc.)** — rejected: limited free tiers, third-party
+  credentials, less control.
+- **Browser automation (selenium) on LinkedIn** — rejected: violates the ToS, risk of
+  account lockout.
+- **Draft only (no API)** — rejected as the end state: does not satisfy "automated".
 
-## Consequências
+## Consequences
 
-- Setup único documentado no runbook (`docs/operations/runbook.md`); renovação de
-  token a cada ~50 dias via Token Generator do Developer Portal.
-- Token 401/expirado derruba o job com erro claro; issue de lembrete é aberta.
-- O mesmo código serve aos dois modos — o draft é o caminho de degradação natural.
+- One-time setup documented in the runbook (`docs/operations/runbook.md`); token
+  renewal every ~50 days via the Developer Portal's Token Generator.
+- A 401/expired token brings the job down with a clear error; a reminder issue is opened.
+- The same code serves both modes — draft is the natural degradation path.

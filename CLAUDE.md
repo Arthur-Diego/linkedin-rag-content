@@ -1,30 +1,32 @@
 # linkedin-rag-content
 
-Pipeline automático e gratuito de posts técnicos sobre RAG no LinkedIn:
-fila de conteúdo versionada → imagem renderizada com Pillow → publicação via
-LinkedIn Posts API (ou draft em issue), agendado por GitHub Actions 3x/semana.
+Automated pipeline for technical RAG posts on LinkedIn: versioned content queue →
+card image (optional gpt-image-1 background + Pillow text overlay) → LinkedIn
+Posts API (or draft issue), scheduled by GitHub Actions 3x/week.
 
-## Índice de contexto (tudo vive em docs/)
+## Context index (everything lives in docs/)
 
 - PRD: `docs/prd.md`
-- HLD do domínio: `docs/domains/content-pipeline/hld.md`
-- FDD da feature 1: `docs/domains/content-pipeline/features/001-pipeline-publicacao-fdd.md`
-- Diagramas: `docs/domains/content-pipeline/diagrams/mermaid/`
-- ADRs: `docs/adrs/generated/CONTENT-PIPELINE/`
-- Guidelines Python: `docs/guidelines/python.md`
-- Pesquisa (LinkedIn API / Napkin): `docs/research/linkedin-napkin-apis.md`
-- Gitflow: `docs/gitflow.md` · Config DD: `docs/dd.md`
-- Runbook de operação (tokens, troubleshooting): `docs/operations/runbook.md`
+- Domain HLD: `docs/domains/content-pipeline/hld.md`
+- Feature 1 FDD: `docs/domains/content-pipeline/features/001-pipeline-publicacao-fdd.md`
+- Diagrams: `docs/domains/content-pipeline/diagrams/mermaid/`
+- ADRs: `docs/adrs/generated/CONTENT-PIPELINE/` (001–006)
+- Python guidelines: `docs/guidelines/python.md`
+- Research (LinkedIn API / Napkin): `docs/research/linkedin-napkin-apis.md`
+- Gitflow: `docs/gitflow.md` · DD config: `docs/dd.md`
+- Operations runbook (tokens, troubleshooting): `docs/operations/runbook.md`
 
-## Comandos
+## Commands
 
-- Testes: `python -m pytest tests/ -q`
-- Rodar pipeline local (draft): `python -m linkedin_pipeline.run --dry-run` (a partir de `src/`, ou `PYTHONPATH=src`)
-- Gerar novos posts para a fila: seguir `scripts/PROMPT_GERACAO.md`
+- Tests: `python -m pytest tests/ -q`
+- Local pipeline run (no publish): `PYTHONPATH=src python -m linkedin_pipeline.run --dry-run`
+- Generate new queue posts: follow `scripts/PROMPT_GERACAO.md`
 
-## Regras do projeto
+## Project rules
 
-- Custo zero é requisito: nenhuma dependência paga em runtime.
-- Posts da fila: markdown com frontmatter YAML em `content/queue/NNN-slug.md`;
-  publicados vão para `content/published/`.
-- Idioma do conteúdo e docs: português brasileiro.
+- Zero runtime cost is a requirement; the ONLY allowed paid dependency is the
+  optional OpenAI image background (ADR-006), which must always fall back to the
+  local gradient.
+- Queued posts: markdown with YAML frontmatter in `content/queue/NNN-slug.md`;
+  published ones move to `content/published/`.
+- Language of content, code and docs: English (target audience: international).

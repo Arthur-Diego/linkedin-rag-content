@@ -1,31 +1,32 @@
 ---
 id: "005"
 topic: query rewriting
-title: "Query rewriting: o problema não é o índice, é a pergunta"
+title: "Query rewriting: the problem isn't your index, it's the question"
 image:
-  headline: "Reescreva a pergunta antes de buscar"
+  headline: "Rewrite the question before you search"
   bullets:
-    - "Usuário pergunta mal, e tudo bem"
-    - "Multi-query: 3 variações da mesma pergunta"
-    - "HyDE: busque com a resposta hipotética"
-    - "Decomponha perguntas compostas"
-alt_text: "Card técnico sobre reescrita de queries em RAG"
+    - "Users ask badly, and that's fine"
+    - "Multi-query: 3 variations of the same question"
+    - "HyDE: search with a hypothetical answer"
+    - "Decompose compound questions"
+  prompt: "Abstract illustration of a single beam of light refracting through a prism into multiple parallel beams, dark navy background with cyan and blue accents, minimal futuristic style"
+alt_text: "Technical card about query rewriting in RAG"
 status: ready
 ---
-Passamos meses otimizando índice, chunking e embeddings — e esquecemos que a query do usuário costuma ser a pior parte do pipeline.
+We spend months optimizing indexes, chunking and embeddings — and forget that the user's query is usually the worst part of the pipeline.
 
-"não funciona o negócio do relatório" — é isso que chega no seu retrieval. Nenhum embedding salva uma pergunta assim. A boa notícia: você tem um LLM na mão, e reescrever texto é o que ele faz de melhor.
+"the report thing doesn't work" — that's what reaches your retrieval. No embedding model can save a question like that. The good news: you have an LLM at hand, and rewriting text is what it does best.
 
-Três técnicas que uso em produção:
+Three techniques I use in production:
 
-1. Multi-query: o LLM gera 3 variações da pergunta com vocabulários diferentes. Roda as buscas em paralelo e funde os resultados com RRF. Cobre o vão entre o jargão do usuário e o jargão dos documentos.
+1. Multi-query: the LLM generates 3 variations of the question with different vocabulary. Run the searches in parallel and fuse results with RRF. It bridges the gap between the user's jargon and the documents' jargon.
 
-2. HyDE: peça ao modelo uma resposta hipotética para a pergunta e use ESSE texto como query. Uma resposta imaginária se parece muito mais com o documento real do que a pergunta original.
+2. HyDE: ask the model for a hypothetical answer to the question and use THAT text as the query. An imaginary answer looks far more like the real document than the original question does.
 
-3. Decomposição: "compare a cobertura do plano X com o plano Y" vira duas buscas — uma por plano — e o modelo compõe a resposta no final. Perguntas compostas quase nunca são respondidas por um único chunk.
+3. Decomposition: "compare plan X coverage with plan Y" becomes two searches — one per plan — and the model composes the final answer. Compound questions are almost never answered by a single chunk.
 
-O custo? Uma chamada extra de um modelo pequeno e barato antes da busca. A latência sobe um pouco; a taxa de resposta certa sobe muito mais.
+The cost? One extra call to a small, cheap model before the search. Latency goes up a little; the rate of correct answers goes up a lot more.
 
-Antes de trocar seu vector store: sua query merece uma segunda chance? 👇
+Before replacing your vector store: does your query deserve a second chance? 👇
 
-#RAG #IA #LLM #NLP #EngenhariaDeIA
+#RAG #LLM #AI #NLP #AIEngineering
