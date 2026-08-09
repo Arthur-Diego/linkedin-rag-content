@@ -25,7 +25,7 @@ status: ready
 
 "How do I get an invoice copy?", "invoice copy", "resend my invoice" — three strings, one question, three full pipeline runs. Paying the LLM every time.
 
-Traditional caching can't help: the key never matches, because the phrasing never repeats. A semantic cache compares by embedding — that's the decision diamond in the diagram: similarity ≥ 0.95 takes the green shortcut (cached answer, ~ms, $0); anything below runs the full pipeline and stores the new answer with its source doc ids for invalidation.
+Traditional caching can't help: the key never matches, because the phrasing never repeats. A semantic cache compares by embedding, and the whole system is one decision: similarity ≥ 0.95 with an already-answered question takes the shortcut (cached answer, ~ms, $0); anything below runs the full pipeline and stores the new answer with its source doc ids for invalidation.
 
 Three decisions separate a useful cache from a wrong-answer factory:
 

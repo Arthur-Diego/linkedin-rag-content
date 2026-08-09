@@ -28,7 +28,7 @@ Vector search uses bi-encoders: query and document become vectors separately, th
 
 A reranker is a cross-encoder: it reads query and document TOGETHER and scores real relevance. Too slow for a whole corpus, perfect for a short list.
 
-Follow the two branches in the diagram: dumping the raw top-20 into the model (red) drags noise and hallucinations with it; inserting the reranker (green) means only 5 precision-picked chunks reach the LLM.
+The contrast is stark: dump the raw top-20 into the model and noise plus hallucinations ride along; insert a reranker and only 5 precision-picked chunks reach the LLM.
 
 The production pattern:
 

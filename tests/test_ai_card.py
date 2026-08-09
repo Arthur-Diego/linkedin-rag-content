@@ -33,7 +33,8 @@ def _png_b64() -> str:
     return base64.b64encode(buf.getvalue()).decode()
 
 
-def test_build_prompt_includes_exact_content(diagram_post):
+def test_spec_prompt_includes_exact_content(diagram_post):
+    diagram_post.meta["image"]["style"] = "spec"
     prompt = ai_card.build_prompt(diagram_post)
     assert '"TEST TOPIC"' in prompt
     assert "A headline with <special> & chars" in prompt
@@ -43,9 +44,26 @@ def test_build_prompt_includes_exact_content(diagram_post):
     assert "no watermark" in prompt.lower()
 
 
-def test_build_prompt_requires_diagram(repo):
+def test_free_prompt_has_no_diagram_and_keeps_headline(diagram_post):
+    diagram_post.meta["image"]["style"] = "free"
+    prompt = ai_card.build_prompt(diagram_post)
+    assert "flowchart LR" not in prompt
+    assert "A headline with <special> & chars" in prompt
+    assert "CREATIVE FREEDOM" in prompt
+    assert "1. first takeaway" in prompt
+
+
+def test_style_alternates_by_id_parity(diagram_post):
+    assert ai_card.resolve_style(diagram_post) == "free"   # id 042 = even
+    diagram_post.meta["id"] = "041"
+    assert ai_card.resolve_style(diagram_post) == "spec"   # odd
+    diagram_post.meta["image"]["style"] = "free"           # explicit wins
+    assert ai_card.resolve_style(diagram_post) == "free"
+
+
+def test_spec_prompt_requires_diagram(repo):
     from conftest import make_post
-    make_post(repo, "001")  # conftest post has no image.diagram
+    make_post(repo, "001")  # odd id -> spec; conftest post has no image.diagram
     post = queue_store.next_post(repo)
     with pytest.raises(ai_card.AICardError, match="no image.diagram"):
         ai_card.build_prompt(post)

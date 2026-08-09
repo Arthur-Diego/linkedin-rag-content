@@ -27,6 +27,21 @@ Renderer chain in `run.py`:
    `CARD_RENDERER=mermaid`.
 3. **Pillow gradient card** (ADR-003) as last resort.
 
+## Amendment (2026-08-09, owner-requested): dual style, sequential alternation
+
+Two prompt styles coexist in `ai_card.py`:
+
+- **spec** — the original diagram-driven prompt (Mermaid as exact layout spec).
+  Didactic, typo-resistant (all text dictated), consistent identity.
+- **free** — creative composition: the model picks the visual concept around the
+  headline + takeaways (only the headline text is dictated). More scroll-stopping
+  variety; higher typo/mismatch risk, mitigated by the approval gate.
+
+Resolution: explicit `image.style` in the frontmatter wins; otherwise posts
+alternate sequentially by id parity (odd = spec, even = free). Captions of
+free-style posts must not narrate "the diagram" (rule in PROMPT_GERACAO).
+Engagement data will decide the long-term mix.
+
 ## Alternatives considered
 
 - **Google Nano Banana Pro (gemini-3-pro-image)** — rejected: loses to gpt-image-2

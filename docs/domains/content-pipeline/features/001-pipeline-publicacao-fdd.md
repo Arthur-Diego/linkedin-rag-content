@@ -24,7 +24,8 @@ image:
     - "line 1"
     - "line 2"
     - "line 3"
-  diagram: |                             # Mermaid flowchart — the card centerpiece
+  style: spec                            # optional: spec | free; default alternates by id parity (odd=spec, even=free)
+  diagram: |                             # Mermaid flowchart — spec-mode centerpiece, fallback source for free mode
     flowchart LR
         A["Start"]:::accent --> B["End"]:::good
         classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
@@ -45,7 +46,7 @@ and `linkedin_post_id`; the file moves to `content/published/`.
 | `queue_store` | `next_post(root)` | lowest `id` with `status: ready`; `None` if empty |
 | | `count_ready(root)` | posts remaining in the queue |
 | | `mark_published(root, post, post_id)` | updates frontmatter + moves to published/ |
-| `ai_card` | `build_prompt(post)`, `render_card(api_key, post, out_path, quality)` | gpt-image-2 infographic 1088×1360 (4:5) from topic + headline + Mermaid spec + takeaways; exact-text prompt, no brand/watermark; raises `AICardError` (ADR-009) |
+| `ai_card` | `resolve_style(post)`, `build_prompt(post)`, `render_card(api_key, post, out_path, quality)` | gpt-image-2 card 1088×1360 (4:5), two styles: **spec** (Mermaid diagram as exact layout spec) and **free** (creative composition around the headline + takeaways); explicit `image.style` wins, default alternates by id parity; raises `AICardError` (ADR-009) |
 | `html_renderer` | `build_html(post)`, `render_card(post, out_path)` | 1200×1350 PNG from `assets/card_template.html`: Inter type, Mermaid diagram from `image.diagram`, 3 numbered takeaways; Playwright/Chromium screenshot; raises `HTMLRenderError` (ADR-008) |
 | `renderer` | `render_card(post, out_path)` | Pillow gradient card — emergency fallback when Playwright is unavailable (ADR-003) |
 | `linkedin` | `publish(token, version, caption, image_path, alt_text)` | userinfo → initializeUpload → PUT binary → POST /rest/posts; returns id |

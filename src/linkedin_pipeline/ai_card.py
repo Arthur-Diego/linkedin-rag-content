@@ -12,7 +12,29 @@ MODEL = "gpt-image-2"
 SIZE = "1088x1360"  # exact 4:5 portrait, multiples of 16
 DEFAULT_QUALITY = "high"
 
-PROMPT_TEMPLATE = """\
+FREE_PROMPT_TEMPLATE = """\
+Create a striking, professional illustration card for a LinkedIn post about a \
+software engineering topic. Portrait 4:5.
+
+TOPIC: "{topic}" — {headline}
+
+CORE IDEAS the visual must communicate:
+{takeaways}
+
+CREATIVE FREEDOM: you choose the best visual concept — an isometric tech scene, a \
+bold conceptual metaphor, a stylized 3D composition, or a modern editorial \
+illustration. Aim for scroll-stopping, high-contrast, contemporary tech-brand \
+aesthetics (Stripe/Linear-grade marketing art). Dark or light palette, your call, \
+but keep it premium and clean.
+
+REQUIRED: render the headline text "{headline}" prominently and legibly on the \
+card, spelled exactly as written, in modern sans-serif type. Any other text must \
+be minimal and correctly spelled.
+FORBIDDEN: watermarks, logos, brand names, author names, invented statistics, \
+walls of text. All text legible on a phone screen.
+"""
+
+SPEC_PROMPT_TEMPLATE = """\
 Create a professional technical infographic card for a LinkedIn post. Portrait 4:5.
 
 STYLE: clean flat vector infographic in the style of top system-design newsletters \
@@ -46,25 +68,43 @@ class AICardError(RuntimeError):
     pass
 
 
-def build_prompt(post) -> str:
-    """Compose the infographic prompt from the post frontmatter."""
+def resolve_style(post) -> str:
+    """'spec' (diagram-driven) or 'free' (creative): explicit image.style wins;
+    otherwise posts alternate sequentially by id parity (odd=spec, even=free)."""
     image_meta = post.meta.get("image") or {}
+    style = str(image_meta.get("style", "")).strip().lower()
+    if style in ("spec", "free"):
+        return style
+    try:
+        return "spec" if int(post.id) % 2 == 1 else "free"
+    except ValueError:
+        return "spec"
+
+
+def build_prompt(post) -> str:
+    """Compose the image prompt from the post frontmatter, per resolved style."""
+    image_meta = post.meta.get("image") or {}
+    headline = image_meta.get("headline") or post.title
+    topic = str(post.meta.get("topic", "RAG")).upper()
+    bullets = image_meta.get("bullets") or []
+    takeaways = "\n".join(f"{i}. {b}" for i, b in enumerate(bullets[:3], start=1))
+
+    if resolve_style(post) == "free":
+        return FREE_PROMPT_TEMPLATE.format(
+            topic=topic, headline=headline, takeaways=takeaways)
+
     diagram = image_meta.get("diagram")
     if not diagram:
         raise AICardError(f"post {post.id} has no image.diagram")
-    bullets = image_meta.get("bullets") or []
-    takeaways = "\n".join(f"{i}. {b}" for i, b in enumerate(bullets[:3], start=1))
-    return PROMPT_TEMPLATE.format(
-        topic=str(post.meta.get("topic", "RAG")).upper(),
-        headline=image_meta.get("headline") or post.title,
-        diagram=diagram.strip(),
-        takeaways=takeaways,
-    )
+    return SPEC_PROMPT_TEMPLATE.format(
+        topic=topic, headline=headline, diagram=diagram.strip(),
+        takeaways=takeaways)
 
 
 def render_card(api_key: str, post, out_path: Path,
                 quality: str = DEFAULT_QUALITY) -> Path:
     """Generate the card with gpt-image-2; raises AICardError on any failure."""
+    print(f"AI card style: {resolve_style(post)}")
     resp = requests.post(
         OPENAI_API,
         headers={"Authorization": f"Bearer {api_key}"},

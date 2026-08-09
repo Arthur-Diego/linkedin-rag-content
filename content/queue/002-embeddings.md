@@ -27,7 +27,7 @@ That's the real cost equation of choosing an embedding model — and almost ever
 
 The trap: benchmarks measure generic corpora. Your domain has legal jargon, source code, or non-English text — and models that win on averages routinely lose there.
 
-That's the two roads in the diagram: the red one stops at the leaderboard and inherits its blind spots; the green one runs 2-3 candidates against your own 50 questions and lets recall@k, latency and cost pick the winner.
+Picture the two roads: one stops at the leaderboard and inherits its blind spots; the other runs 2-3 candidates against your own 50 questions and lets recall@k, latency and cost pick the winner.
 
 The process that works:
 

@@ -25,7 +25,7 @@ status: ready
 
 That sentence has shipped more broken RAG systems than any bug. You tweak the chunking, the demo feels better, you deploy — and weeks later recall has quietly dropped for half the questions nobody tried.
 
-The diagram contrasts the two cultures: the red lane ("ship on vibes") flows straight into silent regressions; the green lane runs every change through a golden set, retrieval metrics and generation metrics before anything ships.
+Two cultures, two outcomes: "ship on vibes" flows straight into silent regressions; the evaluation culture runs every change through a golden set, retrieval metrics and generation metrics before anything ships.
 
 The minimum evaluation kit:
 
