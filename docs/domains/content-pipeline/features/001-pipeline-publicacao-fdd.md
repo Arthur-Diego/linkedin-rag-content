@@ -44,7 +44,7 @@ and `linkedin_post_id`; the file moves to `content/published/`.
 | `renderer` | `render_card(post, out_path, background=None)` | 1200×1350 PNG, chip, headline, bullets, footer; background = darkened AI illustration or default gradient |
 | `ai_renderer` | `build_prompt(post)`, `generate_background(api_key, prompt)` | gpt-image-1 textless background from `image.prompt` (or topic default); raises `AIImageError` on failure (ADR-006) |
 | `linkedin` | `publish(token, version, caption, image_path, alt_text)` | userinfo → initializeUpload → PUT binary → POST /rest/posts; returns id |
-| `run` | CLI `python -m linkedin_pipeline.run [--dry-run] [--root PATH]` | orchestrates and emits outputs for GitHub Actions |
+| `run` | CLI `python -m linkedin_pipeline.run [--dry-run] [--render-only] [--publish-only] [--root PATH]` | orchestrates and emits outputs for GitHub Actions; `--render-only`/`--publish-only` split the approval flow (ADR-007) |
 
 ## 4. `run` flow
 
@@ -54,16 +54,21 @@ and `linkedin_post_id`; the file moves to `content/published/`.
    and falls back to the gradient — never blocks publishing.
 3. `render_card` → `out/<id>.png`; caption → `out/<id>-caption.txt`.
 4. `--dry-run` → stops here (no LinkedIn API, no move) → `mode=dry-run`.
-5. `LINKEDIN_ACCESS_TOKEN` present → `linkedin.publish` → `mark_published` →
+5. `--render-only` (approval flow, stage 1) → stops here → `mode=rendered`; the
+   workflow commits `out/` and shows a preview in the job summary.
+6. `--publish-only` (approval flow, stage 2, runs after human approval) → skips
+   rendering and REUSES `out/<id>.png` (fails with exit 1 if missing); then follows
+   the token logic below.
+7. `LINKEDIN_ACCESS_TOKEN` present → `linkedin.publish` → `mark_published` →
    `mode=published`.
-6. No token → `mode=draft` (the post does NOT leave the queue; artifacts committed
+8. No token → `mode=draft` (the post does NOT leave the queue; artifacts committed
    by the workflow and an issue opened with the caption).
 
 Outputs emitted to `$GITHUB_OUTPUT` (run ↔ workflow contract):
 
 | Output | Values |
 |---|---|
-| `mode` | `none` (empty queue) · `dry-run` · `published` · `draft` |
+| `mode` | `none` (empty queue) · `dry-run` · `rendered` · `published` · `draft` |
 | `queue_empty` | `true` / `false` |
 | `queue_remaining` | integer (workflow opens a replenishment issue if ≤ 2) |
 | `post_id`, `post_title` | post identification (absent when the queue is empty) |
@@ -105,6 +110,7 @@ Outputs emitted to `$GITHUB_OUTPUT` (run ↔ workflow contract):
 | Invalid frontmatter in a post | `ValueError` naming the file; job fails |
 | DejaVu font missing | falls back to Pillow's default font (degrades aesthetics, does not fail) |
 | OpenAI image API failure (quota, 401, timeout) | logs the error and falls back to the gradient background; job continues |
+| `--publish-only` without a rendered image in `out/` | exit 1 with a clear message; queue untouched |
 | Duplicate post (`CONTENT_DUPLICATE`) | job fails; operator removes/edits the queued post |
 
 ## 7. Acceptance criteria

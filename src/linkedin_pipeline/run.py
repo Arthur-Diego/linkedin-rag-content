@@ -1,4 +1,4 @@
-"""Pipeline orchestration: queue -> image -> LinkedIn (or draft)."""
+"""Pipeline orchestration: queue -> image -> approval -> LinkedIn (or draft)."""
 
 from __future__ import annotations
 
@@ -41,7 +41,14 @@ def main(argv: list[str] | None = None) -> int:
                         help="repository root (default: cwd)")
     parser.add_argument("--dry-run", action="store_true",
                         help="render artifacts without publishing or consuming the queue")
+    parser.add_argument("--render-only", action="store_true",
+                        help="render artifacts and stop (approval flow, stage 1)")
+    parser.add_argument("--publish-only", action="store_true",
+                        help="publish previously rendered artifacts without re-rendering "
+                             "(approval flow, stage 2)")
     args = parser.parse_args(argv)
+    if args.render_only and args.publish_only:
+        parser.error("--render-only and --publish-only are mutually exclusive")
     root = args.root.resolve()
 
     post = queue_store.next_post(root)
@@ -51,12 +58,19 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     print(f"Selected post: {post.id} — {post.title}")
-    background = _ai_background(post)
-    image_path = renderer.render_card(post, root / "out" / f"{post.id}.png",
-                                      background=background)
+    image_path = root / "out" / f"{post.id}.png"
     caption_path = root / "out" / f"{post.id}-caption.txt"
-    caption_path.write_text(post.caption + "\n", encoding="utf-8")
-    print(f"Image: {image_path}\nCaption: {caption_path}")
+
+    if args.publish_only:
+        if not image_path.exists():
+            print(f"ERROR: {image_path} not found — run --render-only first.")
+            return 1
+        print(f"Reusing approved artifacts: {image_path}")
+    else:
+        background = _ai_background(post)
+        renderer.render_card(post, image_path, background=background)
+        caption_path.write_text(post.caption + "\n", encoding="utf-8")
+        print(f"Image: {image_path}\nCaption: {caption_path}")
 
     token = os.environ.get("LINKEDIN_ACCESS_TOKEN", "").strip()
     version = os.environ.get("LINKEDIN_VERSION", linkedin.DEFAULT_VERSION)
@@ -65,6 +79,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.dry_run:
         mode = "dry-run"
         print("dry-run: nothing published, queue untouched.")
+    elif args.render_only:
+        mode = "rendered"
+        print("render-only: artifacts ready for approval; queue untouched.")
     elif token:
         post_id = linkedin.publish(token, version, post.caption, image_path, alt_text)
         dest = queue_store.mark_published(root, post, post_id)

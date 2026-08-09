@@ -38,3 +38,22 @@ this on its own).
 
 Edit the cron in `.github/workflows/publish.yml` (UTC). Default:
 `30 11 * * 1,3,5` = Mon/Wed/Fri 08:30 BRT.
+
+## 5. Approving a post (approval flow — ADR-007)
+
+Each run pauses before publishing and GitHub notifies you (e-mail "Review required"
++ push on the GitHub mobile app):
+
+1. Open the run (link in the notification) → the **prepare** job summary shows the
+   card image and the caption.
+2. Click **Review deployments** → check `linkedin` → **Approve and deploy**
+   (publishes) or **Reject** (nothing goes out; the post stays in the queue).
+
+Notes:
+- A pending approval expires in 30 days; the post is never lost.
+- An unapproved run blocks the next scheduled one (concurrency): reject or cancel
+  stale runs you don't want.
+- Want a different image? Reject, edit the post's `image.prompt`, and re-run the
+  workflow (Actions → publish-linkedin → Run workflow).
+- To go back to fully automatic publishing: remove the required reviewer from the
+  `linkedin` environment (Settings → Environments).

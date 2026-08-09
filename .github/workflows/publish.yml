@@ -17,8 +17,15 @@ env:
   LINKEDIN_VERSION: "202606"
 
 jobs:
-  publish:
+  prepare:
     runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.pipeline.outputs.mode }}
+      post_id: ${{ steps.pipeline.outputs.post_id }}
+      post_title: ${{ steps.pipeline.outputs.post_title }}
+      image_path: ${{ steps.pipeline.outputs.image_path }}
+      caption_path: ${{ steps.pipeline.outputs.caption_path }}
+      queue_empty: ${{ steps.pipeline.outputs.queue_empty }}
     steps:
       - uses: actions/checkout@v4
 
@@ -31,18 +38,80 @@ jobs:
           sudo apt-get install -y -q fonts-dejavu-core || true
           pip install -q -r requirements.txt
 
-      - name: Run pipeline
+      - name: Render next post (image + caption)
+        id: pipeline
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: PYTHONPATH=src python -m linkedin_pipeline.run --render-only
+
+      - name: Commit rendered artifacts
+        if: steps.pipeline.outputs.mode == 'rendered'
+        run: |
+          git config user.name "linkedin-pipeline[bot]"
+          git config user.email "actions@github.com"
+          git add out
+          if ! git diff --cached --quiet; then
+            git commit -m "render: ${{ steps.pipeline.outputs.post_id }} ${{ steps.pipeline.outputs.post_title }}"
+            git push
+          fi
+
+      - name: Preview for approval (job summary)
+        if: steps.pipeline.outputs.mode == 'rendered'
+        run: |
+          {
+            echo "## Post ${{ steps.pipeline.outputs.post_id }} — ${{ steps.pipeline.outputs.post_title }}"
+            echo
+            echo "![card](https://raw.githubusercontent.com/${{ github.repository }}/main/${{ steps.pipeline.outputs.image_path }})"
+            echo
+            echo "### Caption"
+            echo
+            echo '```'
+            cat "${{ steps.pipeline.outputs.caption_path }}"
+            echo '```'
+            echo
+            echo "Approve the **publish** job to post this to LinkedIn."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Warn about empty queue
+        if: steps.pipeline.outputs.queue_empty == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="Content queue running low"
+          if [ -z "$(gh issue list --state open --search "\"$TITLE\" in:title" --json number --jq '.[0].number')" ]; then
+            gh issue create --title "$TITLE" \
+              --body "The queue in content/queue/ is empty. Replenish using the prompt in scripts/PROMPT_GERACAO.md."
+          fi
+
+  publish:
+    needs: prepare
+    if: needs.prepare.outputs.mode == 'rendered'
+    environment: linkedin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main   # pick up the artifacts committed by the prepare job
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -q -r requirements.txt
+
+      - name: Publish approved post
         id: pipeline
         env:
           LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: PYTHONPATH=src python -m linkedin_pipeline.run
+        run: PYTHONPATH=src python -m linkedin_pipeline.run --publish-only
 
       - name: Commit result (published post / draft artifacts)
         if: steps.pipeline.outputs.mode == 'published' || steps.pipeline.outputs.mode == 'draft'
         run: |
           git config user.name "linkedin-pipeline[bot]"
           git config user.email "actions@github.com"
+          git pull --ff-only
           git add content out
           if ! git diff --cached --quiet; then
             git commit -m "publish(${{ steps.pipeline.outputs.mode }}): ${{ steps.pipeline.outputs.post_id }} ${{ steps.pipeline.outputs.post_title }}"
@@ -70,8 +139,8 @@ jobs:
             gh issue create --title "$TITLE" --body-file /tmp/issue-body.md
           fi
 
-      - name: Warn about low/empty queue
-        if: steps.pipeline.outputs.queue_empty == 'true' || steps.pipeline.outputs.queue_remaining <= 2
+      - name: Warn about low queue
+        if: steps.pipeline.outputs.queue_remaining <= 2
         env:
           GH_TOKEN: ${{ github.token }}
         run: |

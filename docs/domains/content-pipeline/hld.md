@@ -38,14 +38,19 @@ GitHub Actions (cron 3x/week or manual trigger)
 | `ai_renderer` | optional textless AI background (ADR-006) | OpenAI gpt-image-1 |
 | `linkedin` | image upload + post creation (versioned API) | requests |
 | `run` | orchestration, CLI (`--dry-run`), draft mode | Python argparse |
-| Scheduler | cron + `workflow_dispatch` + result commit | GitHub Actions |
+| Scheduler | cron + `workflow_dispatch` + result commit | GitHub Actions (2 jobs) |
+| Approval gate | pauses `publish` until the owner approves; notifies by e-mail/push | GitHub Environment `linkedin` (required reviewer) |
 | Replenishment | generating new posts with Claude Code (human in the loop) | prompt in `scripts/` |
 
 ## 4. Main flows
 
-**Publish (happy path)**: cron fires → next post from the queue → render PNG →
-upload image → create post → move to `published/` → commit
-`publish(<mode>): <id> <title>` (done by a workflow step, also in draft mode).
+**Publish (happy path, approval flow — ADR-007)**: cron fires → `prepare` job renders
+PNG + caption (`--render-only`), commits them to `out/` and posts a preview in the job
+summary → the `publish` job pauses on the `linkedin` environment and GitHub notifies
+the owner (e-mail + mobile push) → on **Approve**: `--publish-only` reuses the exact
+approved artifacts → upload image → create post → move to `published/` → commit
+`publish(<mode>): <id> <title>`. On **Reject**: nothing is published; the post stays
+in the queue.
 
 **Draft (no token)**: same selection and render steps; instead of calling the API,
 opens an issue in the repository with the caption ready to copy and the image path;
@@ -77,6 +82,7 @@ the runbook `docs/operations/runbook.md` describes the renewal.
 4. Publishing: LinkedIn Posts API + draft mode as fallback — ADR-004
 5. State in git (no database) — ADR-005
 6. Optional AI card background via gpt-image-1, Pillow text overlay — ADR-006
+7. Human approval gate via GitHub Environments — ADR-007
 
 ## 7. Observability and operations
 
