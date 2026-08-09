@@ -1,34 +1,41 @@
 ---
 id: "002"
 topic: embeddings
-title: "Embeddings: the model matters less than you think"
+title: "Embeddings: benchmarks are not your domain"
 image:
-  headline: "Embeddings in RAG: 4 decisions that matter"
+  headline: "Pick embeddings with your data, not leaderboards"
+  diagram: |
+    flowchart LR
+        Q["Which embedding<br/>model?"]:::accent --> BENCH["MTEB<br/>leaderboard"]
+        BENCH --> TRAP["Generic corpus<br/>&ne; your domain"]:::bad
+        Q --> TEST["Test 2-3 candidates<br/>on YOUR data"]
+        TEST --> METRIC["50 real questions<br/>recall@k &middot; latency &middot; cost"]:::good
+        METRIC --> WIN["Pick winner<br/>reindex everything"]:::accent
+        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
+        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
+        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
   bullets:
-    - "Public benchmarks are not your domain"
-    - "Bigger dimensions = bigger cost, not always gains"
-    - "Normalize and fix your distance metric"
-    - "Changed models? Reindex everything"
-  prompt: "Abstract 3D vector space with glowing points clustering in constellations, depth and perspective, dark navy background with cyan and blue gradients, minimal futuristic style"
-alt_text: "Technical card about choosing embedding models for RAG"
+    - "A benchmark winner can lose badly on legal jargon, code or non-English text"
+    - "3072 dimensions cost ~4x more than 768 in storage and latency — check the recall gain first"
+    - "Switched models? Reindex everything: mixed vectors are a silent bug"
+alt_text: "Diagram showing how to select an embedding model by testing on your own data instead of trusting benchmarks"
 status: ready
 ---
-Everyone asks which embedding model is best. Almost nobody asks the question that matters: how does it behave on YOUR domain?
+One afternoon of testing beats six months of mediocre retrieval.
 
-The MTEB leaderboard is a great starting point — and a terrible finish line. A model that wins on generic benchmarks can stumble on legal jargon, source code, or non-English text. The only trustworthy answer comes from testing with your own documents and your own questions.
+That's the real cost equation of choosing an embedding model — and almost everyone skips the test and trusts the MTEB leaderboard instead.
 
-What I evaluate before choosing:
+The trap: benchmarks measure generic corpora. Your domain has legal jargon, source code, or non-English text — and models that win on averages routinely lose there.
 
-1. Language: is your corpus multilingual? Model quality varies wildly across languages.
+The process that works:
 
-2. Vector dimension: 3072 dimensions cost more in storage and latency than 768. If the recall gain is 1%, it doesn't pay.
+1. Pick 2-3 candidates.
+2. Run them on YOUR documents with 50 real questions.
+3. Compare recall@k, latency and cost — 3072-dimension vectors cost roughly 4x more than 768 to store and search.
+4. Crown the winner and reindex EVERYTHING. Mixed vectors from different models in one index fail silently.
 
-3. The embedding context window: chunks longer than the limit get silently truncated — and you'll never get an error about it.
+The bigger lesson: in RAG, evidence from your own data always beats reputation. A leaderboard is where the shortlist starts, never where the decision ends.
 
-4. Consistency: switched models? Reindex EVERYTHING. Vectors from different models in the same index is a silent, guaranteed bug.
+Which embedding model are you running today? 👇
 
-Practical rule: pick 2-3 candidates, run them on your data with 50 real questions, measure recall@k. One afternoon of work that saves months of mediocre retrieval.
-
-Have you actually measured your retrieval recall, or are you trusting the benchmark? 👇
-
-#RAG #Embeddings #LLM #AI #VectorSearch
+#RAG #Embeddings #AIEngineering

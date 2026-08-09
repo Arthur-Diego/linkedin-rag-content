@@ -3,34 +3,47 @@ id: "009"
 topic: agentic rag
 title: "Agentic RAG: when the pipeline becomes a loop"
 image:
-  headline: "Agentic RAG: search, evaluate, search again"
+  headline: "Search, evaluate, search again — with a budget"
+  diagram: |
+    flowchart LR
+        Q["Question"]:::accent --> NEED{"Needs<br/>retrieval?"}
+        NEED -- "no" --> DIRECT["Answer<br/>directly"]:::good
+        NEED -- "yes" --> SEARCH["Search"]
+        SEARCH --> CHECK{"Context<br/>answers it?"}
+        CHECK -- "no &middot; max 3" --> RW["Rewrite<br/>query"]:::bad
+        RW --> SEARCH
+        CHECK -- "yes" --> DRAFT["Draft<br/>answer"]
+        DRAFT --> CRIT{"Claims<br/>supported?"}
+        CRIT -- "no" --> SEARCH
+        CRIT -- "yes" --> FINAL["Final<br/>answer"]:::good
+        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
+        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
+        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
   bullets:
-    - "Linear pipelines search once and pray"
-    - "An agent evaluates results and decides the next step"
-    - "Self-critique before answering"
-    - "Cost and latency: use sparingly"
-  prompt: "Abstract illustration of an intelligent feedback loop, circular flow of glowing arrows and decision nodes, autonomous agent concept, dark navy background with cyan and electric blue accents, futuristic minimal style"
-alt_text: "Technical card about Agentic RAG and retrieval loops"
+    - "The LLM decides IF, WHERE and HOW MANY TIMES to search — instead of one blind shot"
+    - "A single 'does this context answer it?' check kills a whole family of hallucinations"
+    - "Cap the loop at 2-3 iterations: cost and latency grow with every pass"
+alt_text: "Diagram of an agentic RAG loop where the LLM evaluates retrieval quality and retries before answering"
 status: ready
 ---
-Traditional RAG is a straight line: search, build context, answer. One shot. If retrieval failed, the answer is doomed at birth — and the model doesn't even know it.
+1 shot. That's what a traditional RAG pipeline gets: search once, build context, answer.
 
-Agentic RAG turns the line into a loop. The LLM stops being the last stage and becomes the pipeline's operator:
+If retrieval failed, the answer is doomed at birth — and the model doesn't even know it.
 
-1. It decides WHETHER to search — "what's 15% of 300?" needs no retrieval at all.
+Agentic RAG turns the line into a loop. The LLM becomes the pipeline's operator:
 
-2. It decides WHERE to search — the contracts database, technical docs, and web search are different tools for different questions.
+1. Decides IF it should search — "what's 15% of 300?" needs no retrieval.
 
-3. It evaluates what came back — "do these chunks answer the question?" If not, it reformulates the query and tries again, instead of hallucinating on top of bad context.
+2. Decides WHERE — contracts DB, technical docs and web search are different tools.
 
-4. It critiques its own answer before delivering — is every claim supported by the sources? Is half the question still uncovered? Back to step 2.
+3. Evaluates what came back — "does this context answer the question?" If not: rewrite the query and retry, instead of hallucinating over bad context.
 
-It's the difference between an intern who returns the first thing they found on Google and an analyst who keeps digging until they have the answer.
+4. Critiques its own draft — every claim supported by a source? No? Back to searching.
 
-The cost is real and proportional: every iteration is another LLM call, and latency stops being predictable. So the sensible architecture is hybrid — a linear pipeline for the common case, with a cap of 2-3 extra iterations when self-evaluation rejects the retrieval.
+The cost is proportional: each iteration is another LLM call, and latency stops being predictable. So the sensible design is hybrid — linear pipeline for the common case, a 2-3 iteration budget when self-evaluation rejects the retrieval.
 
-Start with step 3: a single "does this context answer the question?" check before generation already eliminates a whole family of hallucinations.
+The bigger lesson: start with step 3. One relevance check before generation is 80% of the benefit at 10% of the complexity.
 
 Does your RAG get a second chance? 👇
 
-#RAG #AgenticAI #LLM #AI #AIAgents
+#RAG #AIAgents #AIEngineering

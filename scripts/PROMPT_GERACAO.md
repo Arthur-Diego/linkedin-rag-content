@@ -1,30 +1,76 @@
-# Official prompt — replenish the content queue
+# Official prompt — professional post generation
 
 When the "Content queue running low" issue shows up (or whenever you want fresh
 topics), open Claude Code at the root of this repository and paste the prompt below.
 Cost: covered by your Claude subscription — no paid API involved.
 
+The rules encode the research in `docs/research/linkedin-tech-content-playbook.md`
+(1.2M-post hook analysis, van der Blom 2025 algorithm report, ByteByteGo-style
+visual patterns). Don't relax them.
+
 ---
 
 Read `content/published/` and `content/queue/` to see the topics already covered and
-the post format. Then create N new posts about RAG in `content/queue/`, continuing
-the id numbering.
+the exact post format. Then create N new posts about RAG in `content/queue/`,
+continuing the id numbering. Audience: international engineers and recruiters.
+Everything in English.
 
-Rules:
+## Frontmatter (identical to existing posts)
 
-1. Format identical to the existing posts: YAML frontmatter with `id` (3-digit
-   string), `topic`, `title`, `image.headline`, `image.bullets` (3-4 short bullets),
-   optional `image.prompt` (visual prompt for AI background generation — abstract
-   illustration description, always textless), `alt_text`, and `status: ready`;
-   body = the LinkedIn caption.
-2. Caption in ENGLISH (target audience: international recruiters and engineers):
-   strong hook in the first line, 3-5 short paragraphs or a numbered list,
-   production-grade practical insight (not tutorial theory), an engagement question
-   at the end, and 5 hashtags.
-3. Topics: deepen or complement what's already published without repeating angles.
-   Backlog ideas: advanced chunking, embedding fine-tuning, multimodal RAG, security
-   and permissions in RAG, RAG vs long-context, contextual retrieval, continuous
-   evaluation, production architectures, real failure stories.
-4. File names: `NNN-slug.md`.
-5. When done, run `python -m pytest tests/ -q`, validate with a `--dry-run`, then
-   commit with the message `content: +N posts in the queue`.
+`id` (3-digit string), `topic`, `title`, `image.headline`, `image.diagram`,
+`image.bullets` (exactly 3), `alt_text`, `status: ready`.
+
+## The diagram (`image.diagram`) — the core of the post
+
+Mermaid `flowchart LR`, rendered on a 4:5 card. Hard rules:
+
+1. ONE concept per diagram. Rotate three archetypes across posts:
+   step-by-step numbered flow · X-vs-Y comparison (wrong path vs right path) ·
+   architecture boxes with labeled arrows.
+2. Node labels: 1-4 words per line, max 2 lines (`<br/>`). Max ~8 nodes, max 5
+   columns of depth — wider than that shrinks the render.
+3. Use the standard classes and append their definitions verbatim:
+   `:::accent` (entry/exit, blue) · `:::bad` (failure path, red) · `:::good`
+   (solution path, green).
+   ```
+   classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
+   classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
+   classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+   ```
+4. No emojis in the diagram. HTML entities for special chars (`&ne;` `&middot;`
+   `&rarr;` `&ge;`). Real tech names ("BM25", "Vector DB") over generic boxes.
+5. The diagram must teach the mechanism by itself — someone who reads only the
+   image should learn the idea.
+
+## The takeaways (`image.bullets`)
+
+Exactly 3, one line each, concrete and specific (numbers > adjectives). They render
+numbered 1-2-3 under the diagram.
+
+## The caption (post body) — 700-1,000 characters
+
+Structure, in order:
+
+1. **Hook (first line, ≤ 10 words)**: a concrete number or a contrarian claim.
+   NEVER a question (questions as openers measurably underperform: −34%).
+   Patterns: "500 tokens. That's where most RAG pipelines break." /
+   "50 in, 5 out. That ratio fixes more systems than any model upgrade."
+2. **Explanation (the meat)**: 1-2 line paragraphs, heavy white space, plain
+   language. A numbered list of 3-4 production-grade steps with real numbers,
+   thresholds and tool names. Teach the mechanism, not the marketing.
+3. **Reflection ("The bigger lesson: ...")**: one short paragraph that zooms out —
+   what this topic teaches about building systems in general. Mandatory.
+4. **CTA**: ONE easy-to-answer question + 👇.
+5. **Hashtags**: exactly 2-3, niche, at the end (e.g. #RAG #AIEngineering). Never
+   more — 6+ measurably hurts reach.
+
+No external links in the body. Optimize for saves: the post should read as
+reference material someone bookmarks.
+
+## Validate before finishing
+
+1. `python -m pytest tests/ -q`
+2. Render every new post and LOOK at each card (diagram fits, labels not clipped):
+   dry-run renders only the next post, so render each new one explicitly via
+   `html_renderer.render_card` or by temporarily reordering ids.
+3. Commit: `content: +N posts in the queue`.

@@ -1,34 +1,42 @@
 ---
 id: "006"
 topic: evaluation
-title: "RAG evaluation: without metrics, every pipeline looks good"
+title: "RAG evaluation: without metrics every pipeline looks good"
 image:
-  headline: "How do you know your RAG got better?"
+  headline: "CI for answer quality: the RAG evaluation loop"
+  diagram: |
+    flowchart LR
+        VIBES["Ship on vibes<br/>'tested it, works'"]:::bad --> REG["Silent regressions<br/>weeks later"]:::bad
+        GOLD["Golden set<br/>50-100 real questions"]:::accent --> RET["Retrieval metrics<br/>recall@k &middot; MRR"]
+        RET --> GEN["Generation metrics<br/>faithfulness &middot; completeness"]
+        GEN --> LOOP["Re-run on EVERY<br/>pipeline change"]:::good
+        LOOP --> SHIP["Ship with<br/>evidence"]:::good
+        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
+        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
+        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
   bullets:
-    - "A working demo is not a metric"
-    - "Measure retrieval and generation separately"
-    - "50 real questions with known answers"
-    - "LLM-as-judge with a fixed rubric"
-  prompt: "Abstract illustration of precision measurement, glowing gauges rulers and data charts floating in space, dark navy background with cyan accents, minimal futuristic style"
-alt_text: "Technical card about evaluating RAG systems"
+    - "Measure retrieval separately: if the right document never arrived, don't judge the answer"
+    - "LLM-as-judge needs a closed rubric — written criteria on a 1-5 scale, not 'rate this'"
+    - "Changed the prompt, chunking or model? Golden set runs again. Every time."
+alt_text: "Diagram of a RAG evaluation loop with a golden set, retrieval metrics, generation metrics and regression on every change"
 status: ready
 ---
-"I tested it and it answered correctly" — that's how RAG systems die in production.
+"I tested it and it answered correctly."
 
-Without an evaluation set, every pipeline change is a guess. You tweak the chunking, the demo feels better, you ship — and weeks later discover that recall dropped for half the questions nobody tested.
+That sentence has shipped more broken RAG systems than any bug. You tweak the chunking, the demo feels better, you deploy — and weeks later recall has quietly dropped for half the questions nobody tried.
 
-The minimum evaluation kit I stand behind:
+The minimum evaluation kit:
 
-1. A golden set: 50-100 REAL questions — pulled from logs, tickets, user chats — with the correct answer and source document annotated. One day of work that becomes the most valuable asset in the project.
+1. Golden set — 50-100 REAL questions from logs and tickets, each with the correct answer and source document annotated. One day of work.
 
-2. Retrieval metrics separate from generation: recall@k and MRR answer "did the right document arrive?". If retrieval failed, don't even bother judging the final answer. Most RAG problems die right here.
+2. Retrieval metrics first — recall@k and MRR answer "did the right document arrive?". Most RAG problems die right here, before generation.
 
-3. Generation metrics: faithfulness to the context and completeness, scored by an LLM judge with a closed rubric — a 1-5 scale with written criteria, not "rate this answer". Frameworks like RAGAS already structure this.
+3. Generation metrics — faithfulness and completeness, scored by an LLM judge with a written 1-5 rubric. Frameworks like RAGAS structure this.
 
-4. Regression on every change: touched the prompt, the chunking, the model? Re-run the golden set. It's CI for answer quality.
+4. Regression on every change — prompt, chunking, model: golden set runs again. It's CI for answer quality.
 
-The golden rule: instrument first, optimize second. Optimization without measurement is just motion.
+The bigger lesson: instrument first, optimize second. Optimization without measurement is just motion — it feels like progress and proves nothing.
 
-Does your RAG have a golden set, or is it still in "works on my machine" mode? 👇
+Does your RAG have a golden set? 👇
 
-#RAG #LLM #AI #MLOps #AIEngineering
+#RAG #MLOps #AIEngineering

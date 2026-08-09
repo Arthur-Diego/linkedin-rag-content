@@ -24,7 +24,7 @@
 | Job fails with `LinkedInError 426/400` citing the version | `LinkedIn-Version` retired | update the `LINKEDIN_VERSION` variable in the workflow to an active `YYYYMM` |
 | "Content queue running low" issue | ≤ 2 ready posts | run `scripts/PROMPT_GERACAO.md` in Claude Code and commit new posts |
 | Post didn't go out on time | GitHub's cron is best-effort | check the Actions tab; trigger manually if needed |
-| Card missing the nice font | DejaVu absent on the runner | not a failure; install `fonts-dejavu-core` in the workflow |
+| Card came out as a plain gradient (no diagram) | Playwright/Chromium failed or Mermaid syntax error in `image.diagram` | check the prepare job log for `HTMLRenderError`; fix the diagram or the Chromium install step |
 
 ## 3. Publishing a draft manually
 

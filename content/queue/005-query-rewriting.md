@@ -1,32 +1,45 @@
 ---
 id: "005"
 topic: query rewriting
-title: "Query rewriting: the problem isn't your index, it's the question"
+title: "Query rewriting: fix the question before the search"
 image:
-  headline: "Rewrite the question before you search"
+  headline: "The worst input in your pipeline is the query"
+  diagram: |
+    flowchart LR
+        Q["Vague question<br/>'report thing broken'"]:::bad --> MQ["Multi-query<br/>3 variations"]
+        Q --> HY["HyDE<br/>hypothetical answer"]
+        Q --> DE["Decompose<br/>1 question &rarr; 2 searches"]
+        MQ --> S["Parallel<br/>searches"]:::accent
+        HY --> S
+        DE --> S
+        S --> RRF["RRF merge"]:::good
+        RRF --> DOCS["Right documents<br/>found"]:::good
+        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
+        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
+        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
   bullets:
-    - "Users ask badly, and that's fine"
-    - "Multi-query: 3 variations of the same question"
-    - "HyDE: search with a hypothetical answer"
-    - "Decompose compound questions"
-  prompt: "Abstract illustration of a single beam of light refracting through a prism into multiple parallel beams, dark navy background with cyan and blue accents, minimal futuristic style"
-alt_text: "Technical card about query rewriting in RAG"
+    - "Multi-query bridges the gap between user jargon and document jargon"
+    - "HyDE: a hypothetical answer looks more like the real document than the question does"
+    - "One extra call to a small model — latency up a little, correct answers up a lot"
+alt_text: "Diagram showing a vague query being rewritten via multi-query, HyDE and decomposition before searching"
 status: ready
 ---
-We spend months optimizing indexes, chunking and embeddings — and forget that the user's query is usually the worst part of the pipeline.
+Months tuning the index. Zero minutes fixing the questions that hit it.
 
-"the report thing doesn't work" — that's what reaches your retrieval. No embedding model can save a question like that. The good news: you have an LLM at hand, and rewriting text is what it does best.
+That's the usual budget split in RAG — inverted. Because what actually reaches your retrieval is "the report thing doesn't work". No embedding model saves that query.
 
-Three techniques I use in production:
+You have an LLM sitting right there. Rewriting text is what it does best:
 
-1. Multi-query: the LLM generates 3 variations of the question with different vocabulary. Run the searches in parallel and fuse results with RRF. It bridges the gap between the user's jargon and the documents' jargon.
+1. Multi-query — generate 3 variations with different vocabulary, search in parallel, merge with RRF. Bridges user jargon vs document jargon.
 
-2. HyDE: ask the model for a hypothetical answer to the question and use THAT text as the query. An imaginary answer looks far more like the real document than the original question does.
+2. HyDE — ask for a hypothetical answer, then search with THAT text. An imagined answer resembles the real document far more than the question does.
 
-3. Decomposition: "compare plan X coverage with plan Y" becomes two searches — one per plan — and the model composes the final answer. Compound questions are almost never answered by a single chunk.
+3. Decomposition — "compare plan X with plan Y" becomes two searches, one per plan. Compound questions are almost never answered by a single chunk.
 
-The cost? One extra call to a small, cheap model before the search. Latency goes up a little; the rate of correct answers goes up a lot more.
+The cost: one call to a small, cheap model before the search.
 
-Before replacing your vector store: does your query deserve a second chance? 👇
+The bigger lesson: garbage in, garbage out applies to retrieval too — and unlike most GIGO problems, this one has a one-afternoon fix.
 
-#RAG #LLM #AI #NLP #AIEngineering
+Do you rewrite queries before searching? 👇
+
+#RAG #LLM #AIEngineering

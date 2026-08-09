@@ -1,34 +1,43 @@
 ---
 id: "004"
 topic: reranking
-title: "Reranking: the second opinion your retrieval needs"
+title: "Reranking: precision after recall"
 image:
-  headline: "Reranking: precision after recall"
+  headline: "Retrieve wide, rerank hard, send only the best"
+  diagram: |
+    flowchart LR
+        DOCS[("1M docs")]:::accent --> RET["Hybrid retrieval<br/>top-50 &middot; recall"]
+        RET --> RAW["Send raw top-20<br/>to the LLM"]
+        RAW --> NOISE["Noisy context<br/>hallucinations"]:::bad
+        RET --> RR["Cross-encoder<br/>rerank &middot; precision"]:::good
+        RR --> TOP5["Top-5 only"]:::good
+        TOP5 --> LLM["LLM answer<br/>grounded + cheaper"]:::accent
+        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
+        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
+        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
   bullets:
-    - "Retrieval optimizes recall, rerankers optimize precision"
-    - "Cross-encoders read query + document together"
-    - "Fetch top-50, rerank, send top-5"
-    - "Less junk context = fewer hallucinations"
-  prompt: "Abstract illustration of glowing cards being sorted and reordered by priority, the top ones shining brighter, dark navy background with cyan accents, minimal futuristic style"
-alt_text: "Technical card about reranking in RAG pipelines"
+    - "Bi-encoders compare vectors; cross-encoders read query + document together"
+    - "Rerank 50 candidates, keep 5 — precision where it matters"
+    - "Open-source BGE rerankers run on CPU for lists this small"
+alt_text: "Diagram of a RAG pipeline where hybrid retrieval fetches top-50 candidates and a cross-encoder reranker keeps only the top-5"
 status: ready
 ---
-Your retrieval returns 20 documents. How many are actually relevant? If the answer is "about 5", you don't have a search problem — you have a ranking problem.
+50 in, 5 out. That ratio fixes more RAG systems than any model upgrade.
 
-Vector search uses bi-encoders: query and document become vectors separately, and comparison is just a similarity computation. Fast enough to scan millions of documents, but shallow — the two texts never actually "read" each other.
+Vector search uses bi-encoders: query and document become vectors separately, then get compared. Fast enough for millions of documents — but the two texts never actually read each other.
 
-A reranker is a cross-encoder: it takes query and document TOGETHER and produces a relevance score. Far too expensive to run on the whole corpus, but perfect for refining a short list.
+A reranker is a cross-encoder: it reads query and document TOGETHER and scores real relevance. Too slow for a whole corpus, perfect for a short list.
 
-The pattern that works:
+The production pattern:
 
-1. Hybrid retrieval brings the top-50 candidates, optimizing recall.
-2. The reranker reorders those 50, optimizing precision.
-3. Only the top-5 make it into the LLM context.
+1. Hybrid retrieval brings top-50 → optimizes recall.
+2. Cross-encoder reranks them → optimizes precision.
+3. Only top-5 reach the LLM context.
 
-The most underrated side effect: less junk in the context means fewer hallucinations. The model doesn't have to guess which of 20 passages matters — the 5 that arrived are the right ones. And a smaller context is also cheaper and faster.
+The side effect nobody prices in: less junk context means fewer hallucinations — the model stops guessing which of 20 passages matters. And a 5-chunk context is also cheaper and faster than a 20-chunk one.
 
-Getting started: the open-source BGE rerankers run fine even on CPU for lists of 50 documents. Near-zero infra cost, visible quality gains on day one.
+The bigger lesson: retrieval and ranking are different jobs. Doing both with one similarity score is asking one metric to carry your whole pipeline.
 
-Do you rerank, or does raw retrieval go straight to your model? 👇
+Open-source BGE rerankers run fine on CPU for 50 documents. Do you rerank today? 👇
 
-#RAG #Reranking #LLM #AI #NLP
+#RAG #Reranking #AIEngineering

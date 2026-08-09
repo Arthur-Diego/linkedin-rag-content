@@ -3,28 +3,38 @@ id: "003"
 topic: hybrid search
 title: "Hybrid search: why vectors alone aren't enough"
 image:
-  headline: "Hybrid search: vectors + BM25"
+  headline: "Vectors find meaning. BM25 finds exact terms."
+  diagram: |
+    flowchart LR
+        Q["Query"]:::accent --> VEC["Vector search<br/>semantics"]
+        Q --> BM["BM25<br/>exact terms"]
+        VEC -.-> VMISS["Misses codes<br/>ORA-01555"]:::bad
+        BM -.-> BMISS["Misses synonyms<br/>cancel &ne; terminate"]:::bad
+        VEC --> RRF["Reciprocal Rank<br/>Fusion"]:::good
+        BM --> RRF
+        RRF --> TOP["Best of both<br/>in the top-k"]:::accent
+        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
+        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
+        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
   bullets:
-    - "Vectors miss exact codes, acronyms and names"
-    - "BM25 misses synonyms and paraphrases"
-    - "RRF combines both with zero tuning"
-    - "The cheapest retrieval upgrade you can ship"
-  prompt: "Two abstract streams of light, one geometric and structured, one organic and flowing, merging into a single beam, dark navy background with cyan accents, minimal futuristic style"
-alt_text: "Technical card about hybrid search combining vectors and BM25"
+    - "Error codes, contract numbers and acronyms are invisible to pure vector search"
+    - "RRF fuses both rankings with zero tuning — no weights, no score normalization"
+    - "Qdrant, Weaviate, OpenSearch and pgvector ship hybrid search natively"
+alt_text: "Diagram of hybrid search fusing vector search and BM25 results with Reciprocal Rank Fusion"
 status: ready
 ---
-Vector search finds what you meant. Lexical search finds what you typed. Your RAG needs both.
+2 searches. 1 fusion formula. That's the cheapest retrieval upgrade in RAG.
 
-The classic case: a user asks about error "ORA-01555" or contract "CT-2024-0087". Vector search returns semantically similar documents — but not THE document, because an exact code isn't semantics. BM25 nails it in first position.
+Vector search finds what the user meant. Lexical search finds what the user typed. Production traffic needs both:
 
-The reverse case exists too: the user asks "how to cancel my subscription" and the document says "plan termination". BM25 sees zero term overlap. Vectors get it instantly.
+A user asks about error "ORA-01555" — vector search returns semantically similar documents, but not THE document. An exact code isn't semantics. BM25 nails it.
 
-The fix is running both searches and fusing the results. The simplest, surprisingly effective method: Reciprocal Rank Fusion. The formula fits in a tweet — each document scores points based on its rank in each list, then you sum. No weights to calibrate, no score normalization across different systems.
+Another asks "how to cancel my subscription" — the document says "plan termination". Zero term overlap, BM25 is blind. Vectors get it instantly.
 
-Bonus: virtually every modern vector store already ships hybrid search natively — Qdrant, Weaviate, OpenSearch, pgvector with Postgres tsvector. It's configuration, not a project.
+The fix: run both, then merge with Reciprocal Rank Fusion. Each document scores by its position in each ranking; sum the points. No weights to tune, no score normalization — and it consistently beats either search alone.
 
-If you only run vector search today, hybrid search is probably the biggest retrieval gain per hour of work you can get.
+The bigger lesson: most RAG upgrades are trade-offs. Hybrid search is one of the few free lunches — your vector store almost certainly already supports it as configuration.
 
-Is your RAG hybrid yet? 👇
+Is your retrieval hybrid yet? 👇
 
-#RAG #HybridSearch #LLM #AI #InformationRetrieval
+#RAG #InformationRetrieval #AIEngineering

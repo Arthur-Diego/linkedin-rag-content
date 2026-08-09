@@ -3,30 +3,41 @@ id: "001"
 topic: chunking
 title: "Chunking: where most RAG pipelines die"
 image:
-  headline: "Chunking: where most RAG pipelines die"
+  headline: "Chunking decides your RAG ceiling"
+  diagram: |
+    flowchart LR
+        DOC["Document"]:::accent --> FIX["Fixed-size cut<br/>500 tokens"]
+        DOC --> STR["Structure-aware cut<br/>headings + paragraphs"]
+        FIX --> BAD["Broken tables<br/>orphan clauses"]:::bad
+        STR --> GOOD["10-20% overlap<br/>+ metadata"]:::good
+        BAD --> LOW["Low recall"]:::bad
+        GOOD --> DB[("Vector DB")]:::accent
+        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
+        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
+        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
   bullets:
-    - "Fixed-size is a baseline, not a solution"
-    - "Respect semantic boundaries: headings, paragraphs, functions"
-    - "10-20% overlap saves context at the edges"
-    - "Measure retrieval before switching strategies"
-  prompt: "Abstract illustration of a large document being split into glowing organized fragments and blocks, dark navy background with cyan accents, geometric minimal style"
-alt_text: "Technical card about chunking strategies in RAG"
+    - "Split along structure, not token counts — headings and paragraphs are free boundaries"
+    - "10-20% overlap keeps context alive at chunk borders"
+    - "Measure recall on 50 known questions before switching strategies"
+alt_text: "Diagram comparing fixed-size chunking with structure-aware chunking in a RAG pipeline"
 status: ready
 ---
-Your RAG isn't underperforming because of the model. It's underperforming because of your chunking.
+500 tokens. That's where most RAG pipelines quietly break.
 
-Most pipelines start by slicing documents into fixed 500-token blocks. Fine as a baseline, but there's a problem: the cut ignores document structure. A table split in half, a clause separated from its heading, a function without its signature — retrieval finds the chunk, but the model receives a fragment that makes no sense.
+Fixed-size chunking is everyone's baseline — and the reason retrieval returns half a table, or a clause without its heading. The chunk arrives, but the meaning doesn't.
 
-Three upgrades that usually pay off:
+What actually works in production:
 
-1. Structure-aware chunking: split along headings, sections and paragraphs. Markdown and HTML give you these boundaries for free.
+1. Split along structure — headings, paragraphs, functions. Markdown gives you these boundaries for free.
 
-2. 10-20% overlap: the context living at the border between two chunks stops getting lost.
+2. Add 10-20% overlap, so context at the borders survives the cut.
 
-3. Metadata inside the chunk: document title, section and date attached to the text. Richer embeddings, and filtering becomes possible.
+3. Attach metadata to every chunk — document title, section, date. Richer embeddings, and filtering becomes possible.
 
-Most important of all: never switch strategies blindly. Build a small set of questions with known answers and measure retrieval recall before and after. Chunking decisions are made with numbers, not intuition.
+The bigger lesson: chunking looks like a preprocessing detail, but it sets the ceiling for your entire pipeline. No reranker, no bigger model can fix a chunk that arrived broken.
 
-What chunking strategy are you using today? 👇
+So before switching strategies: build 50 questions with known answers and measure recall before and after. Chunking is decided with numbers, not intuition.
 
-#RAG #LLM #AI #MachineLearning #AIEngineering
+What's your default chunk size today? 👇
+
+#RAG #AIEngineering #LLM

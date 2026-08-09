@@ -14,9 +14,9 @@ There is no server, database, or 24/7 service: **the repository is the system**.
 GitHub Actions (cron 3x/week or manual trigger)
   └─ python -m linkedin_pipeline.run
        ├─ queue_store: reads content/queue/, picks the post with the lowest id
-       ├─ ai_renderer: optional gpt-image-1 background (OPENAI_API_KEY set;
-       │               any failure falls back to the local gradient)
-       ├─ renderer:    generates out/<id>.png (Pillow, card template)
+       ├─ html_renderer: out/<id>.png — HTML template + Mermaid diagram,
+       │                 Playwright/Chromium screenshot (Inter, light theme)
+       ├─ renderer:      Pillow gradient card (fallback only)
        ├─ linkedin:    with LINKEDIN_ACCESS_TOKEN →
        │                 1. GET  /v2/userinfo            (member URN)
        │                 2. POST /rest/images?action=initializeUpload
@@ -34,8 +34,8 @@ GitHub Actions (cron 3x/week or manual trigger)
 |---|---|---|
 | Content queue | pending/published posts, frontmatter format | git (`content/`) |
 | `queue_store` | select the next post, move it to published | Python + PyYAML |
-| `renderer` | 1200×1350 PNG card (title, bullets, footer) | Pillow |
-| `ai_renderer` | optional textless AI background (ADR-006) | OpenAI gpt-image-1 |
+| `html_renderer` | 1200×1350 diagram card (title, Mermaid flow, takeaways, footer) | HTML template + Playwright/Chromium (ADR-008) |
+| `renderer` | gradient card — emergency fallback | Pillow |
 | `linkedin` | image upload + post creation (versioned API) | requests |
 | `run` | orchestration, CLI (`--dry-run`), draft mode | Python argparse |
 | Scheduler | cron + `workflow_dispatch` + result commit | GitHub Actions (2 jobs) |
@@ -66,8 +66,6 @@ the runbook `docs/operations/runbook.md` describes the renewal.
 
 ## 5. External contracts consumed
 
-- OpenAI Images API (`POST /v1/images/generations`, model gpt-image-1) — optional,
-  only when `OPENAI_API_KEY` is set; the only paid component (~US$0.5–2/month).
 - Versioned LinkedIn API (`LinkedIn-Version: 2xxxxx`): `/v2/userinfo`,
   `/rest/images?action=initializeUpload`, `/rest/posts`. Auth: OAuth 2.0 member token
   with scopes `openid profile w_member_social`. Free for publishing to one's own profile.
@@ -81,8 +79,9 @@ the runbook `docs/operations/runbook.md` describes the renewal.
 3. Local image with Pillow (not Napkin AI) — ADR-003
 4. Publishing: LinkedIn Posts API + draft mode as fallback — ADR-004
 5. State in git (no database) — ADR-005
-6. Optional AI card background via gpt-image-1, Pillow text overlay — ADR-006
+6. AI card background via gpt-image-1 — ADR-006 (superseded by ADR-008)
 7. Human approval gate via GitHub Environments — ADR-007
+8. Didactic diagram cards: HTML + Mermaid + Playwright — ADR-008
 
 ## 7. Observability and operations
 

@@ -34,14 +34,19 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: |
-          sudo apt-get install -y -q fonts-dejavu-core || true
-          pip install -q -r requirements.txt
+        run: pip install -q -r requirements.txt
 
-      - name: Render next post (image + caption)
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+
+      - name: Install Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Render next post (diagram card + caption)
         id: pipeline
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: PYTHONPATH=src python -m linkedin_pipeline.run --render-only
 
       - name: Commit rendered artifacts

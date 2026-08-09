@@ -1,34 +1,42 @@
 ---
 id: "008"
 topic: semantic cache
-title: "Semantic caching: the most ignored cost optimization in RAG"
+title: "Semantic caching: the most ignored cost lever in RAG"
 image:
-  headline: "Semantic cache: pay once, answer a thousand times"
+  headline: "Same question, a thousand phrasings: cache by meaning"
+  diagram: |
+    flowchart LR
+        Q["New question"]:::accent --> SIM{"Similar to a cached<br/>question? &ge; 0.95"}
+        SIM -- "yes" --> HIT["Cached answer<br/>~ms &middot; $0"]:::good
+        SIM -- "no" --> PIPE["Full pipeline<br/>retrieve + generate"]
+        PIPE --> STORE["Store answer<br/>+ source doc ids"]:::accent
+        STORE -.-> INV["Doc updated &rarr;<br/>expire entries"]:::bad
+        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
+        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
+        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
   bullets:
-    - "Repeated questions dominate real traffic"
-    - "Cache by similarity, not string equality"
-    - "Wrong threshold = wrong answer served confidently"
-    - "Invalidate when the source document changes"
-  prompt: "Abstract illustration of caching and memory, layered translucent panels with glowing data streams being reused, dark navy background with cyan highlights, minimal futuristic style"
-alt_text: "Technical card about semantic caching in LLM applications"
+    - "Cache by embedding similarity, not string equality — phrasings never repeat exactly"
+    - "Threshold ~0.95: 'cancel plan A' and 'cancel plan B' are neighbors with different answers"
+    - "Store source doc ids with each answer; invalidate when the source changes"
+alt_text: "Diagram of a semantic cache checking embedding similarity before running the full RAG pipeline"
 status: ready
 ---
-Look at your RAG's production logs. I'd bet 30% of the questions are variations of the same 50 doubts.
+30% of production RAG traffic is the same 50 questions, rephrased.
 
-"How do I get a copy of my invoice?", "invoice copy", "resend my invoice" — three different strings, one question, three full pipeline runs: retrieval, reranking, generation. Paying the LLM all three times.
+"How do I get an invoice copy?", "invoice copy", "resend my invoice" — three strings, one question, three full pipeline runs. Paying the LLM every time.
 
-Traditional caching doesn't help: the key never matches, because the string never repeats exactly. A semantic cache compares by embedding — if a new question is similar enough to one already answered, return the stored answer. Seconds become milliseconds; token cost becomes zero.
+Traditional caching can't help: the key never matches, because the phrasing never repeats. A semantic cache compares by embedding — similar enough to an answered question? Return the stored answer. Seconds become milliseconds; token cost becomes zero.
 
-The three decisions that separate a useful cache from a wrong-answer factory:
+Three decisions separate a useful cache from a wrong-answer factory:
 
-1. A conservative threshold: start high, around 0.95. "Cancel plan A" and "cancel plan B" are neighbors in vector space — with different answers. A cache false positive is a wrong answer delivered with full confidence.
+1. Conservative threshold (~0.95). "Cancel plan A" and "cancel plan B" are vector-space neighbors with different answers — and a cache false positive is a wrong answer served with confidence.
 
-2. Source-based invalidation: store, next to each answer, the documents that produced it. Document updated → derived entries expire. A RAG cache without invalidation becomes a museum of outdated answers.
+2. Source-based invalidation. Store the doc ids behind each answer; document updated → entries expire.
 
-3. Per-user or per-tenant scope: answers that depend on permissions must never leak through a global cache.
+3. Per-tenant scope. Permission-dependent answers must never leak through a global cache.
 
-It's an afternoon of implementation — you're already computing the embedding anyway — and your LLM bill will thank you at the end of the month.
+The bigger lesson: you already compute the embedding for every question. The cheapest optimization is reusing work you've already paid for.
 
-How many times a day does your pipeline answer the same question? 👇
+How often does your pipeline answer the same thing twice? 👇
 
-#RAG #LLM #AI #FinOps #AIEngineering
+#RAG #FinOps #AIEngineering

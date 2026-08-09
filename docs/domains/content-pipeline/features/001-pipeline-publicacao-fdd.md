@@ -24,7 +24,11 @@ image:
     - "line 1"
     - "line 2"
     - "line 3"
-  prompt: "abstract illustration idea"   # optional; AI background art direction
+  diagram: |                             # Mermaid flowchart — the card centerpiece
+    flowchart LR
+        A["Start"]:::accent --> B["End"]:::good
+        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
+        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
 alt_text: "image description for accessibility"  # optional; fallback = title
 status: ready            # ready | published
 ---
@@ -41,8 +45,8 @@ and `linkedin_post_id`; the file moves to `content/published/`.
 | `queue_store` | `next_post(root)` | lowest `id` with `status: ready`; `None` if empty |
 | | `count_ready(root)` | posts remaining in the queue |
 | | `mark_published(root, post, post_id)` | updates frontmatter + moves to published/ |
-| `renderer` | `render_card(post, out_path, background=None)` | 1200×1350 PNG, chip, headline, bullets, footer; background = darkened AI illustration or default gradient |
-| `ai_renderer` | `build_prompt(post)`, `generate_background(api_key, prompt)` | gpt-image-1 textless background from `image.prompt` (or topic default); raises `AIImageError` on failure (ADR-006) |
+| `html_renderer` | `build_html(post)`, `render_card(post, out_path)` | 1200×1350 PNG from `assets/card_template.html`: Inter type, Mermaid diagram from `image.diagram`, 3 numbered takeaways, brand footer; Playwright/Chromium screenshot; raises `HTMLRenderError` (ADR-008) |
+| `renderer` | `render_card(post, out_path)` | Pillow gradient card — emergency fallback when Playwright is unavailable (ADR-003) |
 | `linkedin` | `publish(token, version, caption, image_path, alt_text)` | userinfo → initializeUpload → PUT binary → POST /rest/posts; returns id |
 | `run` | CLI `python -m linkedin_pipeline.run [--dry-run] [--render-only] [--publish-only] [--root PATH]` | orchestrates and emits outputs for GitHub Actions; `--render-only`/`--publish-only` split the approval flow (ADR-007) |
 
@@ -50,9 +54,9 @@ and `linkedin_post_id`; the file moves to `content/published/`.
 
 1. `next_post` — empty queue → logs `QUEUE_EMPTY`, outputs `queue_empty=true`,
    `mode=none`, exit 0.
-2. With `OPENAI_API_KEY` set: try an AI background (`ai_renderer`); any failure logs
-   and falls back to the gradient — never blocks publishing.
-3. `render_card` → `out/<id>.png`; caption → `out/<id>-caption.txt`.
+2. Render `out/<id>.png` via `html_renderer` (diagram card); on `HTMLRenderError`
+   fall back to the Pillow gradient card — rendering never blocks publishing.
+3. Caption → `out/<id>-caption.txt`.
 4. `--dry-run` → stops here (no LinkedIn API, no move) → `mode=dry-run`.
 5. `--render-only` (approval flow, stage 1) → stops here → `mode=rendered`; the
    workflow commits `out/` and shows a preview in the job summary.
@@ -108,8 +112,8 @@ Outputs emitted to `$GITHUB_OUTPUT` (run ↔ workflow contract):
 | HTTP ≠ 2xx on any LinkedIn call | `LinkedInError` with status + body; job fails (visible in Actions) |
 | 401 (expired token) | same as above; runbook covers renewal |
 | Invalid frontmatter in a post | `ValueError` naming the file; job fails |
-| DejaVu font missing | falls back to Pillow's default font (degrades aesthetics, does not fail) |
-| OpenAI image API failure (quota, 401, timeout) | logs the error and falls back to the gradient background; job continues |
+| Playwright missing / Mermaid syntax error / render timeout | `HTMLRenderError` logged; falls back to the Pillow gradient card; job continues |
+| DejaVu font missing (fallback card only) | falls back to Pillow's default font (degrades aesthetics, does not fail) |
 | `--publish-only` without a rendered image in `out/` | exit 1 with a clear message; queue untouched |
 | Duplicate post (`CONTENT_DUPLICATE`) | job fails; operator removes/edits the queued post |
 

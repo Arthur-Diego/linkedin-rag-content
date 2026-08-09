@@ -1,6 +1,7 @@
 # ADR-006 — AI-generated card background via gpt-image-1 (optional, paid)
 
-- Status: accepted (2026-08-09, owner-approved — supersedes part of ADR-003)
+- Status: **superseded by ADR-008** (2026-08-09 — owner rejected the AI-background
+  visual style; replaced by didactic diagram cards)
 - Domain: CONTENT-PIPELINE
 
 ## Context

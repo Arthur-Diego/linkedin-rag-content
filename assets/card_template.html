@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'Inter'; font-weight: 400; src: url('{{ASSETS}}/fonts/inter-400.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 600; src: url('{{ASSETS}}/fonts/inter-600.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 800; src: url('{{ASSETS}}/fonts/inter-800.woff2') format('woff2'); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #e2e8f0; }
+
+  #card {
+    width: 1200px; height: 1350px;
+    background:
+      radial-gradient(circle at 85% 8%, rgba(56,189,248,.10), transparent 40%),
+      linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    font-family: 'Inter', sans-serif;
+    color: #0f172a;
+    display: flex; flex-direction: column;
+    padding: 64px 72px 48px;
+    position: relative; overflow: hidden;
+  }
+  #card::before {           /* subtle grid, study-material feel */
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(15,23,42,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15,23,42,.035) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  #card > * { position: relative; }
+
+  .top { display: flex; align-items: center; justify-content: space-between; }
+  .chip {
+    display: inline-block; padding: 10px 22px; border-radius: 999px;
+    background: #0284c7; color: #fff;
+    font-size: 24px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  }
+  .brand-top { font-size: 24px; font-weight: 600; color: #64748b; }
+
+  h1 {
+    margin-top: 34px;
+    font-size: 62px; font-weight: 800; line-height: 1.12;
+    letter-spacing: -0.02em;
+  }
+  h1 .accent { color: #0284c7; }
+
+  .diagram-panel {
+    margin-top: 38px;
+    background: #ffffff;
+    border: 1px solid #dbe3ee;
+    border-radius: 20px;
+    box-shadow: 0 12px 32px rgba(15,23,42,.07);
+    flex: 1 1 auto;
+    display: flex; align-items: center; justify-content: center;
+    padding: 28px; overflow: hidden;
+  }
+  #diagram-box { display: flex; align-items: center; justify-content: center; }
+  #diagram-box svg { display: block; }
+
+  .takeaways { margin-top: 34px; display: flex; flex-direction: column; gap: 16px; }
+  .takeaway { display: flex; align-items: flex-start; gap: 16px; font-size: 27px; line-height: 1.35; }
+  .takeaway .num {
+    flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px;
+    background: #e0f2fe; color: #0284c7;
+    font-weight: 800; font-size: 22px;
+    display: flex; align-items: center; justify-content: center; margin-top: 2px;
+  }
+  .takeaway b { font-weight: 600; }
+
+  .footer {
+    margin-top: 36px; padding-top: 24px;
+    border-top: 1px solid #d7dfe9;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 25px; color: #64748b;
+  }
+  .footer .author { font-weight: 600; color: #334155; }
+</style>
+</head>
+<body>
+<div id="card">
+  <div class="top">
+    <span class="chip">{{TOPIC}}</span>
+    <span class="brand-top">RAG in practice</span>
+  </div>
+  <h1>{{TITLE}}</h1>
+  <div class="diagram-panel">
+    <div id="diagram-box"><pre class="mermaid">{{DIAGRAM}}</pre></div>
+  </div>
+  <div class="takeaways">{{TAKEAWAYS}}</div>
+  <div class="footer">
+    <span><span class="author">Arthur Diego</span> · RAG in practice</span>
+    <span>#{{NUMBER}}</span>
+  </div>
+</div>
+
+<script src="{{ASSETS}}/vendor/mermaid.min.js"></script>
+<script>
+  const panel = document.querySelector('.diagram-panel');
+  const box = document.getElementById('diagram-box');
+
+  function fitDiagram() {
+    const svg = box.querySelector('svg');
+    if (!svg) return;
+    svg.style.maxWidth = 'none';
+    const bb = svg.getBBox();
+    const w = bb.width + 20, h = bb.height + 20;
+    svg.setAttribute('width', w);
+    svg.setAttribute('height', h);
+    svg.setAttribute('viewBox', `${bb.x - 10} ${bb.y - 10} ${w} ${h}`);
+    const availW = panel.clientWidth - 56, availH = panel.clientHeight - 56;
+    const scale = Math.min(availW / w, availH / h, 2.2);
+    svg.style.width = (w * scale) + 'px';
+    svg.style.height = (h * scale) + 'px';
+  }
+
+  mermaid.initialize({
+    startOnLoad: false,
+    securityLevel: 'strict',
+    theme: 'base',
+    themeVariables: {
+      fontFamily: 'Inter, sans-serif',
+      fontSize: '30px',
+      primaryColor: '#e0f2fe',
+      primaryBorderColor: '#0284c7',
+      primaryTextColor: '#0f172a',
+      secondaryColor: '#f1f5f9',
+      secondaryBorderColor: '#94a3b8',
+      tertiaryColor: '#fff7ed',
+      tertiaryBorderColor: '#f59e0b',
+      lineColor: '#475569',
+      edgeLabelBackground: '#f8fafc',
+      clusterBkg: '#f8fafc',
+      clusterBorder: '#cbd5e1'
+    },
+    flowchart: { nodeSpacing: 34, rankSpacing: 42, padding: 10, curve: 'basis' }
+  });
+
+  (async () => {
+    try {
+      await document.fonts.ready;   // measure text with Inter, not the fallback font
+      await mermaid.run({ querySelector: '.mermaid' });
+      fitDiagram();
+      window.__ready = true;
+    } catch (e) {
+      window.__error = String(e);
+    }
+  })();
+</script>
+</body>
+</html>

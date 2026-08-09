@@ -1,34 +1,41 @@
 ---
 id: "007"
 topic: graph rag
-title: "Graph RAG: when similarity search can't reach the answer"
+title: "Graph RAG: when similarity can't reach the answer"
 image:
-  headline: "Graph RAG: answers that require connections"
+  headline: "Local questions need chunks. Global questions need graphs."
+  diagram: |
+    flowchart LR
+        Q1["Local question<br/>'what is X?'"]:::accent --> V["Vector search"] --> A1["Answer lives in<br/>1-2 chunks"]:::good
+        Q2["Global question<br/>themes &middot; connections"]:::accent --> V2["Vector search"] -.-> MISS["No single<br/>right chunk"]:::bad
+        Q2 --> KG["Knowledge graph<br/>entities + relations"]
+        KG --> COM["Community<br/>summaries"] --> A2["Answer spans the<br/>whole collection"]:::good
+        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
+        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
+        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
   bullets:
-    - "Similarity can't answer global questions"
-    - "Entities and relations become a graph"
-    - "Summarized communities answer the big picture"
-    - "High cost: use it where vectors provably fail"
-  prompt: "Abstract knowledge graph visualization, glowing interconnected nodes and edges forming communities and clusters, dark navy background with cyan and blue accents, futuristic data network"
-alt_text: "Technical card about Graph RAG and knowledge graphs"
+    - "An LLM extracts entities and relations at indexing time and builds the graph"
+    - "Community detection + pre-generated summaries answer the big-picture questions"
+    - "LLM-powered indexing is expensive — adopt it only where vectors provably fail"
+alt_text: "Diagram comparing vector RAG for local questions with Graph RAG using a knowledge graph for global questions"
 status: ready
 ---
-"What are the main themes across these 10,000 documents?" — that question breaks any traditional RAG.
+"What are the main themes across these 10,000 documents?"
 
-Similarity search answers local questions: the answer lives in one or two chunks. But global questions — dominant themes, connections between entities, dependency chains — have no single right chunk. The answer is scattered across the entire collection.
+One question, and your entire RAG breaks. Not because the model is weak — because similarity search answers LOCAL questions, where the answer lives in 1-2 chunks. Global questions have no right chunk: the answer is scattered across the collection.
 
-Graph RAG attacks this by changing the structure:
+Graph RAG changes the structure:
 
-1. At indexing time, an LLM extracts entities and relations from each document and builds a knowledge graph.
+1. At indexing, an LLM extracts entities and relations from each document → knowledge graph.
 
-2. Community detection algorithms group connected entities, and each community gets a pre-generated summary.
+2. Community detection groups connected entities; each community gets a pre-generated summary.
 
-3. At query time, global questions are answered from community summaries; local questions traverse the graph — from the mentioned entity to its neighbors, assembling context no vector search would ever bring together.
+3. At query time: global questions read the summaries; local ones traverse the graph — connecting facts that share no vocabulary across 4 different documents.
 
-The classic case: "what's the relationship between supplier X and incident Y?" — the answer spans 4 documents that share no vocabulary. Only the graph connects them.
+The price is real: LLM-powered indexing costs 10-100x more than embedding, and the graph needs maintenance.
 
-The price is real: LLM-powered indexing is expensive, keeping the graph fresh takes work, and latency goes up. Hence my rule: Graph RAG doesn't replace vector RAG — it complements it. Adopt it when you have questions vectors provably can't answer, not because it's the acronym of the month.
+The bigger lesson: Graph RAG complements vector RAG, it doesn't replace it. Adopt it for the questions vectors provably fail — not because it's the acronym of the month.
 
-Have you hit questions your traditional RAG simply can't reach? 👇
+Have you hit questions your RAG simply can't reach? 👇
 
-#RAG #GraphRAG #KnowledgeGraph #LLM #AI
+#RAG #GraphRAG #KnowledgeGraph

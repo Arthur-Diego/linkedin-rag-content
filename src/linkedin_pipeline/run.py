@@ -1,4 +1,4 @@
-"""Pipeline orchestration: queue -> image -> approval -> LinkedIn (or draft)."""
+"""Pipeline orchestration: queue -> diagram card -> approval -> LinkedIn (or draft)."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import ai_renderer, linkedin, queue_store, renderer
+from . import html_renderer, linkedin, queue_store, renderer
 
 
 def _gh_output(**kwargs) -> None:
@@ -20,19 +20,14 @@ def _gh_output(**kwargs) -> None:
             fh.write(f"{key}={value}\n")
 
 
-def _ai_background(post):
-    """AI-generated background when OPENAI_API_KEY is set; None otherwise/on failure."""
-    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
-    if not api_key:
-        return None
-    prompt = ai_renderer.build_prompt(post)
+def _render(post, image_path: Path) -> None:
+    """Diagram card via HTML/Playwright; Pillow gradient card as emergency fallback."""
     try:
-        background = ai_renderer.generate_background(api_key, prompt)
-        print("AI background generated (gpt-image-1)")
-        return background
-    except Exception as exc:  # any failure falls back to the gradient
-        print(f"AI background failed, falling back to gradient: {exc}")
-        return None
+        html_renderer.render_card(post, image_path)
+        print("Card rendered (HTML template + Mermaid diagram)")
+    except html_renderer.HTMLRenderError as exc:
+        print(f"HTML renderer unavailable ({exc}); falling back to Pillow card")
+        renderer.render_card(post, image_path)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -67,8 +62,8 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print(f"Reusing approved artifacts: {image_path}")
     else:
-        background = _ai_background(post)
-        renderer.render_card(post, image_path, background=background)
+        _render(post, image_path)
+        caption_path.parent.mkdir(parents=True, exist_ok=True)
         caption_path.write_text(post.caption + "\n", encoding="utf-8")
         print(f"Image: {image_path}\nCaption: {caption_path}")
 
