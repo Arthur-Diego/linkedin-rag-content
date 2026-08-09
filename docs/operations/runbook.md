@@ -24,7 +24,9 @@
 | Job fails with `LinkedInError 426/400` citing the version | `LinkedIn-Version` retired | update the `LINKEDIN_VERSION` variable in the workflow to an active `YYYYMM` |
 | "Content queue running low" issue | ≤ 2 ready posts | run `scripts/PROMPT_GERACAO.md` in Claude Code and commit new posts |
 | Post didn't go out on time | GitHub's cron is best-effort | check the Actions tab; trigger manually if needed |
+| Card is the plain Mermaid style (not the AI infographic) | gpt-image-2 failed: quota/billing/key — see `AICardError` in the prepare log | check OpenAI billing or the `OPENAI_API_KEY` secret; the fallback card is still publishable |
 | Card came out as a plain gradient (no diagram) | Playwright/Chromium failed or Mermaid syntax error in `image.diagram` | check the prepare job log for `HTMLRenderError`; fix the diagram or the Chromium install step |
+| AI card has a typo or wrong arrow | gpt-image-2 imperfection (~1% of labels) | Reject in the approval gate and re-run the workflow — each render is unique |
 
 ## 3. Publishing a draft manually
 

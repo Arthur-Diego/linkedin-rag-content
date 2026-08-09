@@ -6,16 +6,19 @@ An automated pipeline that publishes technical posts about RAG to LinkedIn,
 ```
 GitHub Actions (cron Mon/Wed/Fri)
    └─► next post from the queue (content/queue/*.md)
-         └─► didactic diagram card: HTML template + Mermaid flowchart
-             (Inter type, light theme) → PNG via headless Chromium
+         └─► didactic infographic card, rendered by the first available:
+             1. gpt-image-2 (needs OPENAI_API_KEY · ~$0.17/image)
+             2. Mermaid/HTML card via headless Chromium (free)
+             3. Pillow gradient card (free, emergency)
                └─► ⏸ approval gate: GitHub notifies you (e-mail/push),
                    you review the image + caption and click Approve
                      └─► LinkedIn Posts API (with token)
                          or GitHub issue with the finished post (without token)
 ```
 
-- **100% free**: Actions on a public repo + LinkedIn's free official API + local,
-  deterministic card rendering (no paid image APIs).
+- **Nearly free**: Actions on a public repo + LinkedIn's free official API. The
+  only paid piece is the gpt-image-2 card (~US$2/month at 3 posts/week); remove
+  the `OPENAI_API_KEY` secret and the free Mermaid renderer takes over.
 - **Didactic by design**: every card is a system-design style diagram (ByteByteGo
   school) with 3 numbered takeaways — the format with the highest save rate on
   LinkedIn; caption rules follow the research in

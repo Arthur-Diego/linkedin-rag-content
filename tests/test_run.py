@@ -1,9 +1,10 @@
 from conftest import make_post
-from linkedin_pipeline import html_renderer, linkedin, queue_store, run
+from linkedin_pipeline import ai_card, html_renderer, linkedin, queue_store, run
 
 
 def test_dry_run_keeps_queue(repo, monkeypatch):
     monkeypatch.delenv("LINKEDIN_ACCESS_TOKEN", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     make_post(repo, "001")
     assert run.main(["--root", str(repo), "--dry-run"]) == 0
     assert (repo / "out/001.png").exists()
@@ -82,6 +83,7 @@ def test_publish_only_fails_without_rendered_image(repo, monkeypatch, capsys):
 
 def test_html_failure_falls_back_to_pillow(repo, monkeypatch, capsys):
     monkeypatch.delenv("LINKEDIN_ACCESS_TOKEN", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     make_post(repo, "001")
 
     def boom(post, out_path, assets_dir=None):
@@ -91,3 +93,49 @@ def test_html_failure_falls_back_to_pillow(repo, monkeypatch, capsys):
     assert run.main(["--root", str(repo), "--dry-run"]) == 0
     assert (repo / "out/001.png").exists()
     assert "falling back to Pillow" in capsys.readouterr().out
+
+
+def test_ai_card_used_when_key_present(repo, monkeypatch, capsys):
+    monkeypatch.delenv("LINKEDIN_ACCESS_TOKEN", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    make_post(repo, "001")
+    calls = []
+
+    def fake_ai(api_key, post, out_path, quality=None):
+        calls.append(quality)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_bytes(b"png")
+        return out_path
+
+    monkeypatch.setattr(ai_card, "render_card", fake_ai)
+    assert run.main(["--root", str(repo), "--dry-run"]) == 0
+    assert calls == ["high"]
+    assert "gpt-image-2 infographic" in capsys.readouterr().out
+
+
+def test_ai_failure_falls_back_to_mermaid_chain(repo, monkeypatch, capsys):
+    monkeypatch.delenv("LINKEDIN_ACCESS_TOKEN", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    make_post(repo, "001")
+
+    def boom_ai(api_key, post, out_path, quality=None):
+        raise ai_card.AICardError("quota exceeded")
+
+    monkeypatch.setattr(ai_card, "render_card", boom_ai)
+    assert run.main(["--root", str(repo), "--dry-run"]) == 0
+    assert (repo / "out/001.png").exists()  # rendered by a fallback
+    assert "falling back to Mermaid card" in capsys.readouterr().out
+
+
+def test_card_renderer_env_skips_ai(repo, monkeypatch, capsys):
+    monkeypatch.delenv("LINKEDIN_ACCESS_TOKEN", raising=False)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    monkeypatch.setenv("CARD_RENDERER", "mermaid")
+
+    def never(*args, **kwargs):
+        raise AssertionError("AI renderer must be skipped with CARD_RENDERER=mermaid")
+
+    monkeypatch.setattr(ai_card, "render_card", never)
+    make_post(repo, "001")
+    assert run.main(["--root", str(repo), "--dry-run"]) == 0
+    assert (repo / "out/001.png").exists()

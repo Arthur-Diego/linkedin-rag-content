@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import html_renderer, linkedin, queue_store, renderer
+from . import ai_card, html_renderer, linkedin, queue_store, renderer
 
 
 def _gh_output(**kwargs) -> None:
@@ -21,7 +21,20 @@ def _gh_output(**kwargs) -> None:
 
 
 def _render(post, image_path: Path) -> None:
-    """Diagram card via HTML/Playwright; Pillow gradient card as emergency fallback."""
+    """Renderer chain: gpt-image-2 infographic -> Mermaid/HTML card -> Pillow card.
+
+    CARD_RENDERER=mermaid skips the AI stage even when OPENAI_API_KEY is set.
+    """
+    choice = os.environ.get("CARD_RENDERER", "auto").strip().lower()
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if choice != "mermaid" and api_key:
+        quality = os.environ.get("IMAGE_QUALITY", ai_card.DEFAULT_QUALITY)
+        try:
+            ai_card.render_card(api_key, post, image_path, quality=quality)
+            print(f"Card rendered (gpt-image-2 infographic, quality={quality})")
+            return
+        except ai_card.AICardError as exc:
+            print(f"gpt-image-2 unavailable ({exc}); falling back to Mermaid card")
     try:
         html_renderer.render_card(post, image_path)
         print("Card rendered (HTML template + Mermaid diagram)")

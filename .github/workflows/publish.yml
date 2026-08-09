@@ -47,6 +47,9 @@ jobs:
 
       - name: Render next post (diagram card + caption)
         id: pipeline
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          IMAGE_QUALITY: high
         run: PYTHONPATH=src python -m linkedin_pipeline.run --render-only
 
       - name: Commit rendered artifacts

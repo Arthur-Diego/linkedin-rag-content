@@ -14,9 +14,10 @@ There is no server, database, or 24/7 service: **the repository is the system**.
 GitHub Actions (cron 3x/week or manual trigger)
   └─ python -m linkedin_pipeline.run
        ├─ queue_store: reads content/queue/, picks the post with the lowest id
-       ├─ html_renderer: out/<id>.png — HTML template + Mermaid diagram,
-       │                 Playwright/Chromium screenshot (Inter, light theme)
-       ├─ renderer:      Pillow gradient card (fallback only)
+       ├─ ai_card:       out/<id>.png — gpt-image-2 infographic from the
+       │                 Mermaid spec (primary, needs OPENAI_API_KEY)
+       ├─ html_renderer: Mermaid/HTML card via Playwright (fallback 1)
+       ├─ renderer:      Pillow gradient card (fallback 2)
        ├─ linkedin:    with LINKEDIN_ACCESS_TOKEN →
        │                 1. GET  /v2/userinfo            (member URN)
        │                 2. POST /rest/images?action=initializeUpload
@@ -34,8 +35,9 @@ GitHub Actions (cron 3x/week or manual trigger)
 |---|---|---|
 | Content queue | pending/published posts, frontmatter format | git (`content/`) |
 | `queue_store` | select the next post, move it to published | Python + PyYAML |
-| `html_renderer` | 1200×1350 diagram card (title, Mermaid flow, takeaways, footer) | HTML template + Playwright/Chromium (ADR-008) |
-| `renderer` | gradient card — emergency fallback | Pillow |
+| `ai_card` | 1088×1360 infographic from the post's Mermaid spec (ADR-009) | OpenAI gpt-image-2 |
+| `html_renderer` | 1200×1350 diagram card — fallback 1 (ADR-008) | HTML template + Playwright/Chromium |
+| `renderer` | gradient card — fallback 2 | Pillow |
 | `linkedin` | image upload + post creation (versioned API) | requests |
 | `run` | orchestration, CLI (`--dry-run`), draft mode | Python argparse |
 | Scheduler | cron + `workflow_dispatch` + result commit | GitHub Actions (2 jobs) |
@@ -66,6 +68,8 @@ the runbook `docs/operations/runbook.md` describes the renewal.
 
 ## 5. External contracts consumed
 
+- OpenAI Images API (`POST /v1/images/generations`, model gpt-image-2) — primary
+  card renderer; the only paid component (~US$0.165/image at quality high).
 - Versioned LinkedIn API (`LinkedIn-Version: 2xxxxx`): `/v2/userinfo`,
   `/rest/images?action=initializeUpload`, `/rest/posts`. Auth: OAuth 2.0 member token
   with scopes `openid profile w_member_social`. Free for publishing to one's own profile.
@@ -82,6 +86,7 @@ the runbook `docs/operations/runbook.md` describes the renewal.
 6. AI card background via gpt-image-1 — ADR-006 (superseded by ADR-008)
 7. Human approval gate via GitHub Environments — ADR-007
 8. Didactic diagram cards: HTML + Mermaid + Playwright — ADR-008
+9. gpt-image-2 as primary renderer, Mermaid as fallback — ADR-009
 
 ## 7. Observability and operations
 

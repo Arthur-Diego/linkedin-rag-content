@@ -1,9 +1,9 @@
 # linkedin-rag-content
 
 Automated pipeline for technical RAG posts on LinkedIn: versioned content queue →
-didactic diagram card (HTML + Mermaid + Playwright, Pillow fallback) → human
-approval gate → LinkedIn Posts API (or draft issue), scheduled by GitHub Actions
-3x/week.
+didactic infographic card (gpt-image-2 primary; Mermaid/Playwright and Pillow
+fallbacks) → human approval gate → LinkedIn Posts API (or draft issue), scheduled
+by GitHub Actions 3x/week.
 
 ## Context index (everything lives in docs/)
 
@@ -26,8 +26,9 @@ approval gate → LinkedIn Posts API (or draft issue), scheduled by GitHub Actio
 
 ## Project rules
 
-- Zero runtime cost is a requirement: no paid APIs (ADR-008 retired the gpt-image
-  background).
+- The only allowed paid API is gpt-image-2 for the card (ADR-009, ~US$0.17/image);
+  everything else must stay free, and the Mermaid/Pillow fallbacks must always work
+  without the key.
 - Queued posts: markdown with YAML frontmatter in `content/queue/NNN-slug.md`
   (must include `image.diagram`, Mermaid); published ones move to
   `content/published/`.
