@@ -22,7 +22,8 @@ GitHub Actions (cron 3x/semana ou disparo manual)
        │                 4. POST /rest/posts              (post + imagem)
        │               sem token → modo draft:
        │                 gh issue com legenda pronta + imagem commitada
-       └─ queue_store: move o post para content/published/ e commita
+       ├─ queue_store: move o post para content/published/
+       └─ (step do workflow) commit/push do resultado em main
 ```
 
 ## 3. Componentes
@@ -40,15 +41,17 @@ GitHub Actions (cron 3x/semana ou disparo manual)
 ## 4. Fluxos principais
 
 **Publicação (feliz)**: cron dispara → próximo post da fila → render PNG →
-upload imagem → cria post → move para `published/` → commit `publish: <id>`.
+upload imagem → cria post → move para `published/` → commit
+`publish(<mode>): <id> <título>` (feito por step do workflow, também no modo draft).
 
 **Draft (sem token)**: mesmos passos de seleção e render; em vez de chamar a API,
 abre issue no repositório com a legenda pronta para copiar e o caminho da imagem;
 o post permanece na fila (não é consumido) até ser publicado de fato ou movido
 manualmente.
 
-**Fila vazia**: job termina com sucesso e abre/atualiza issue `Fila de conteúdo vazia`
-pedindo reabastecimento (prompt em `scripts/PROMPT_GERACAO.md`).
+**Fila baixa/vazia** (`queue_remaining ≤ 2` ou vazia): job termina com sucesso e abre a
+issue `Fila de conteúdo baixa` — apenas se ainda não houver uma aberta — pedindo
+reabastecimento (prompt em `scripts/PROMPT_GERACAO.md`).
 
 **Token expirado (~60 dias)**: chamada retorna 401 → job falha com mensagem clara →
 runbook `docs/operations/runbook.md` descreve a renovação.
@@ -58,7 +61,8 @@ runbook `docs/operations/runbook.md` descreve a renovação.
 - LinkedIn API versionada (`LinkedIn-Version: 2xxxxx`): `/v2/userinfo`,
   `/rest/images?action=initializeUpload`, `/rest/posts`. Auth: OAuth 2.0 member token
   com scopes `openid profile w_member_social`. Gratuita para publicar no próprio perfil.
-- GitHub: `gh` CLI no runner (issues, commit/push). Auth: `GITHUB_TOKEN` do workflow.
+- GitHub: `gh` CLI no runner (issues) e git puro para commit/push. Auth: `GITHUB_TOKEN`
+  do workflow.
 
 ## 6. Decisões estruturais (→ ADRs)
 

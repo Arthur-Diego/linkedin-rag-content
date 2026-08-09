@@ -23,7 +23,7 @@ image:
     - "linha 1"
     - "linha 2"
     - "linha 3"
-alt_text: "descrição da imagem para acessibilidade"
+alt_text: "descrição da imagem para acessibilidade"  # opcional; fallback = title
 status: ready            # ready | published
 ---
 Corpo da legenda do LinkedIn (com hashtags no final).
@@ -45,14 +45,24 @@ Ao publicar: frontmatter ganha `status: published`, `published_at` (ISO-8601 UTC
 
 ## 4. Fluxo do `run`
 
-1. `next_post` — fila vazia → loga `QUEUE_EMPTY`, output `queue_empty=true`, exit 0.
+1. `next_post` — fila vazia → loga `QUEUE_EMPTY`, outputs `queue_empty=true`,
+   `mode=none`, exit 0.
 2. `render_card` → `out/<id>.png`; legenda → `out/<id>-caption.txt`.
-3. `--dry-run` → para aqui (nada de API, nada de move).
+3. `--dry-run` → para aqui (nada de API, nada de move) → `mode=dry-run`.
 4. `LINKEDIN_ACCESS_TOKEN` presente → `linkedin.publish` → `mark_published` →
-   output `mode=published`.
-5. Sem token → output `mode=draft` (post NÃO sai da fila; artefatos commitados pelo
+   `mode=published`.
+5. Sem token → `mode=draft` (post NÃO sai da fila; artefatos commitados pelo
    workflow e issue aberta com a legenda).
-6. Sempre: output `queue_remaining=<n>` (workflow abre issue de reabastecimento se ≤ 2).
+
+Outputs emitidos em `$GITHUB_OUTPUT` (contrato run ↔ workflow):
+
+| Output | Valores |
+|---|---|
+| `mode` | `none` (fila vazia) · `dry-run` · `published` · `draft` |
+| `queue_empty` | `true` / `false` |
+| `queue_remaining` | inteiro (workflow abre issue de reabastecimento se ≤ 2) |
+| `post_id`, `post_title` | identificação do post (ausentes quando fila vazia) |
+| `image_path`, `caption_path` | caminhos relativos dos artefatos (idem) |
 
 ## 5. Contrato externo consumido (LinkedIn, API versionada)
 
@@ -76,7 +86,7 @@ Ao publicar: frontmatter ganha `status: published`, `published_at` (ISO-8601 UTC
 ```
 
 - Headers: `LinkedIn-Version: <LINKEDIN_VERSION, default 202606>`,
-  `X-Restli-Protocol-Version: 2.0.0`.
+  `X-Restli-Protocol-Version: 2.0.0`, `Content-Type: application/json`.
 - Escape do commentary (formato little-text): prefixar `\` em
   `\ | { } [ ] ( ) < > * _ ~` — `#` e `@` ficam intactos (hashtags/menções).
 

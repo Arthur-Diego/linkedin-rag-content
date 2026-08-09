@@ -13,7 +13,7 @@ flowchart TD
     INIT --> PUT["PUT uploadUrl (binário PNG)"]
     PUT --> POST["POST /rest/posts\n(commentary + media.id)"]
     POST --> MOVE["mark_published:\nqueue/ → published/\n+ published_at + linkedin_post_id"]
-    MOVE --> COMMIT["commit 'publish: id título'\npush em main"]
+    MOVE --> COMMIT["commit 'publish(mode): id título'\npush em main"]
     COMMIT --> LOW{"queue_remaining ≤ 2?"}
     DRAFT --> LOW
     LOW -- "sim" --> WARN["issue: fila baixa"]

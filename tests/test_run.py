@@ -11,11 +11,16 @@ def test_dry_run_keeps_queue(repo, monkeypatch):
     assert queue_store.count_ready(repo) == 1
 
 
-def test_draft_mode_without_token(repo, monkeypatch):
+def test_draft_mode_without_token(repo, monkeypatch, tmp_path):
     monkeypatch.delenv("LINKEDIN_ACCESS_TOKEN", raising=False)
+    gh_output = tmp_path / "gh_output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(gh_output))
     make_post(repo, "001")
     assert run.main(["--root", str(repo)]) == 0
     assert queue_store.count_ready(repo) == 1  # draft não consome a fila
+    outputs = gh_output.read_text()
+    assert "mode=draft" in outputs
+    assert "queue_remaining=1" in outputs
 
 
 def test_publish_mode_with_token(repo, monkeypatch):
@@ -29,7 +34,12 @@ def test_publish_mode_with_token(repo, monkeypatch):
     assert len(published) == 1
 
 
-def test_empty_queue_exits_zero(repo, monkeypatch, capsys):
+def test_empty_queue_exits_zero(repo, monkeypatch, capsys, tmp_path):
     monkeypatch.delenv("LINKEDIN_ACCESS_TOKEN", raising=False)
+    gh_output = tmp_path / "gh_output"
+    monkeypatch.setenv("GITHUB_OUTPUT", str(gh_output))
     assert run.main(["--root", str(repo)]) == 0
     assert "QUEUE_EMPTY" in capsys.readouterr().out
+    outputs = gh_output.read_text()
+    assert "queue_empty=true" in outputs
+    assert "mode=none" in outputs
