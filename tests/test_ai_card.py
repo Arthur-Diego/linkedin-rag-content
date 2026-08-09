@@ -53,18 +53,23 @@ def test_free_prompt_has_no_diagram_and_keeps_headline(diagram_post):
     assert "1. first takeaway" in prompt
 
 
-def test_style_alternates_by_id_parity(diagram_post):
-    assert ai_card.resolve_style(diagram_post) == "free"   # id 042 = even
-    diagram_post.meta["id"] = "041"
-    assert ai_card.resolve_style(diagram_post) == "spec"   # odd
-    diagram_post.meta["image"]["style"] = "free"           # explicit wins
+def test_style_defaults_to_free(diagram_post):
     assert ai_card.resolve_style(diagram_post) == "free"
+    diagram_post.meta["image"]["style"] = "spec"           # explicit opt-in wins
+    assert ai_card.resolve_style(diagram_post) == "spec"
+
+
+def test_free_prompt_carries_series_identity(diagram_post):
+    prompt = ai_card.build_prompt(diagram_post)             # default = free
+    assert "VISUAL IDENTITY" in prompt
+    assert "#7c5cff" in prompt
 
 
 def test_spec_prompt_requires_diagram(repo):
     from conftest import make_post
-    make_post(repo, "001")  # odd id -> spec; conftest post has no image.diagram
+    make_post(repo, "001")
     post = queue_store.next_post(repo)
+    post.meta["image"]["style"] = "spec"  # conftest post has no image.diagram
     with pytest.raises(ai_card.AICardError, match="no image.diagram"):
         ai_card.build_prompt(post)
 

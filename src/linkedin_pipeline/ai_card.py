@@ -13,23 +13,32 @@ SIZE = "1088x1360"  # exact 4:5 portrait, multiples of 16
 DEFAULT_QUALITY = "high"
 
 FREE_PROMPT_TEMPLATE = """\
-Create a striking, professional illustration card for a LinkedIn post about a \
+Create a striking, professional infographic card for a LinkedIn post about a \
 software engineering topic. Portrait 4:5.
 
 TOPIC: "{topic}" — {headline}
 
-CORE IDEAS the visual must communicate:
+CORE IDEAS — one visual panel per idea, in this order:
 {takeaways}
 
-CREATIVE FREEDOM: you choose the best visual concept — an isometric tech scene, a \
-bold conceptual metaphor, a stylized 3D composition, or a modern editorial \
-illustration. Aim for scroll-stopping, high-contrast, contemporary tech-brand \
-aesthetics (Stripe/Linear-grade marketing art). Dark or light palette, your call, \
-but keep it premium and clean.
+VISUAL IDENTITY (fixed series style — every card must look like a sibling of the \
+others): dark near-black navy background (deep #0a0a14 → #12122a tones), vibrant \
+violet/purple (#7c5cff, #a78bfa) as the single accent family, white extra-bold \
+modern sans-serif headline at the top with 1-2 key words highlighted in purple, \
+one glossy 3D isometric vector object as the hero visual near the headline \
+(cube, sphere, device — pick the best metaphor for the topic), and below it \
+rounded dark panels with thin outlines — ONE panel per core idea, each numbered \
+in a small purple square (1, 2, 3), each panel illustrating its idea with small \
+3D vector elements, green check marks for right/good and red crosses for \
+wrong/bad. Subtle glow and depth shadows. Premium tech-brand editorial style, \
+generous spacing, nothing cluttered.
 
-REQUIRED: render the headline text "{headline}" prominently and legibly on the \
-card, spelled exactly as written, in modern sans-serif type. Any other text must \
-be minimal and correctly spelled.
+CREATIVE FREEDOM: within that identity, you choose the metaphors, objects and \
+per-panel compositions that best explain THIS topic.
+
+REQUIRED: render the headline text "{headline}" prominently and legibly, spelled \
+exactly as written. The numbered panel texts must copy the core ideas exactly, \
+character by character. Any other text minimal and correctly spelled.
 FORBIDDEN: watermarks, logos, brand names, author names, invented statistics, \
 walls of text. All text legible on a phone screen.
 """
@@ -69,16 +78,11 @@ class AICardError(RuntimeError):
 
 
 def resolve_style(post) -> str:
-    """'spec' (diagram-driven) or 'free' (creative): explicit image.style wins;
-    otherwise posts alternate sequentially by id parity (odd=spec, even=free)."""
+    """'free' (creative, fixed series identity — the default) or 'spec'
+    (diagram-driven), overridable per post via image.style."""
     image_meta = post.meta.get("image") or {}
     style = str(image_meta.get("style", "")).strip().lower()
-    if style in ("spec", "free"):
-        return style
-    try:
-        return "spec" if int(post.id) % 2 == 1 else "free"
-    except ValueError:
-        return "spec"
+    return style if style in ("spec", "free") else "free"
 
 
 def build_prompt(post) -> str:

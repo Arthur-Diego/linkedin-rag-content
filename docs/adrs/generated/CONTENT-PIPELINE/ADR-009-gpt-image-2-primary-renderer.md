@@ -42,6 +42,18 @@ alternate sequentially by id parity (odd = spec, even = free). Captions of
 free-style posts must not narrate "the diagram" (rule in PROMPT_GERACAO).
 Engagement data will decide the long-term mix.
 
+## Amendment 2 (2026-08-09, owner decision after seeing both styles)
+
+**Free is now the default for ALL posts** (`resolve_style` returns free unless
+`image.style: spec` opts in). The free prompt carries a **fixed series identity**
+modeled on the approved card of post 002: dark near-black navy background, violet
+(#7c5cff/#a78bfa) accent family, white extra-bold headline with purple-highlighted
+key words, glossy 3D isometric hero object, one rounded dark panel per takeaway
+numbered in purple squares, green-check/red-cross semantics. Creative freedom is
+bounded to metaphors and per-panel composition — every card must read as part of
+the same series. Captions never narrate "the diagram"; `image.diagram` remains
+mandatory as the fallback renderer's source.
+
 ## Alternatives considered
 
 - **Google Nano Banana Pro (gemini-3-pro-image)** — rejected: loses to gpt-image-2

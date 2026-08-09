@@ -19,9 +19,10 @@ Everything in English.
 
 `id` (3-digit string), `topic`, `title`, `image.headline`, `image.diagram`,
 `image.bullets` (exactly 3), `alt_text`, `status: ready`. Optional `image.style`:
-`spec` (diagram-driven card) or `free` (creative composition) — when omitted,
-posts alternate automatically by id parity (odd = spec, even = free). ALWAYS
-include `image.diagram` even for free posts (it powers the fallback renderer).
+the default is **free** (creative card with the fixed dark/violet series
+identity, one 3D panel per takeaway); set `spec` only to force a strict
+diagram-drawn card. ALWAYS include `image.diagram` (it powers the free-tier
+fallback renderer).
 
 ## The diagram (`image.diagram`) — the core of the post
 
@@ -59,11 +60,10 @@ Structure, in order:
    Patterns: "500 tokens. That's where most RAG pipelines break." /
    "50 in, 5 out. That ratio fixes more systems than any model upgrade."
 2. **Image walkthrough (mandatory)**: 1-3 sentences that pull the reader into the
-   visual before the list starts. For **spec** posts (odd ids), narrate the
-   diagram explicitly — "The diagram shows the fork. Red path: ... Green path:
-   ...". For **free** posts (even ids), the image is a creative composition, so
-   narrate the CONCEPT instead ("Picture the two roads: ...") and never mention
-   "the diagram".
+   visual before the list starts. Default (free style): narrate the CONCEPT
+   ("Picture the two roads: ...") and never mention "the diagram". Only when a
+   post explicitly sets `image.style: spec` may the caption narrate the diagram
+   ("Red path: ... Green path: ...").
 3. **Explanation (the meat)**: 1-2 line paragraphs, heavy white space, plain
    language. A numbered list of 3-4 production-grade steps with real numbers,
    thresholds and tool names. Teach the mechanism, not the marketing.

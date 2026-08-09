@@ -25,7 +25,7 @@ status: ready
 ---
 2 searches. 1 fusion formula. That's the cheapest retrieval upgrade in RAG.
 
-Vector search finds what the user meant. Lexical search finds what the user typed. The diagram shows why you need both: each engine alone has a red failure branch — vectors miss exact codes, BM25 misses synonyms — and RRF fusion is the green node that erases both weaknesses.
+Vector search finds what the user meant. Lexical search finds what the user typed. Each engine alone carries a blind spot — vectors miss exact codes, BM25 misses synonyms — and RRF fusion erases both weaknesses in one move.
 
 Production traffic proves it daily:
 
