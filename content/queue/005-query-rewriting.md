@@ -28,6 +28,8 @@ Months tuning the index. Zero minutes fixing the questions that hit it.
 
 That's the usual budget split in RAG — inverted. Because what actually reaches your retrieval is "the report thing doesn't work". No embedding model saves that query.
 
+The diagram starts exactly there — a vague, red query. Three rewriting techniques branch out of it, run their searches in parallel, and RRF merges everything into the green outcome: the right documents found.
+
 You have an LLM sitting right there. Rewriting text is what it does best:
 
 1. Multi-query — generate 3 variations with different vocabulary, search in parallel, merge with RRF. Bridges user jargon vs document jargon.

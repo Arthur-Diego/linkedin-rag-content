@@ -25,7 +25,9 @@ status: ready
 ---
 2 searches. 1 fusion formula. That's the cheapest retrieval upgrade in RAG.
 
-Vector search finds what the user meant. Lexical search finds what the user typed. Production traffic needs both:
+Vector search finds what the user meant. Lexical search finds what the user typed. The diagram shows why you need both: each engine alone has a red failure branch — vectors miss exact codes, BM25 misses synonyms — and RRF fusion is the green node that erases both weaknesses.
+
+Production traffic proves it daily:
 
 A user asks about error "ORA-01555" — vector search returns semantically similar documents, but not THE document. An exact code isn't semantics. BM25 nails it.
 

@@ -2,6 +2,8 @@
 
 Fixed-size chunking is everyone's baseline — and the reason retrieval returns half a table, or a clause without its heading. The chunk arrives, but the meaning doesn't.
 
+The diagram shows the fork. Red path: a fixed 500-token cut slices through tables and clauses, and recall pays the price. Green path: cuts that follow the document's own structure, plus overlap and metadata, deliver retrieval-ready chunks to the vector DB.
+
 What actually works in production:
 
 1. Split along structure — headings, paragraphs, functions. Markdown gives you these boundaries for free.

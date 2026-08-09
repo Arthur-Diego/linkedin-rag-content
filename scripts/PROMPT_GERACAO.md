@@ -55,13 +55,17 @@ Structure, in order:
    NEVER a question (questions as openers measurably underperform: −34%).
    Patterns: "500 tokens. That's where most RAG pipelines break." /
    "50 in, 5 out. That ratio fixes more systems than any model upgrade."
-2. **Explanation (the meat)**: 1-2 line paragraphs, heavy white space, plain
+2. **Image walkthrough (mandatory)**: 1-3 sentences that narrate the diagram —
+   name the red path and the green path and what each leads to ("The diagram shows
+   the fork. Red path: ... Green path: ..."). The reader must be pulled into the
+   image before the list starts.
+3. **Explanation (the meat)**: 1-2 line paragraphs, heavy white space, plain
    language. A numbered list of 3-4 production-grade steps with real numbers,
    thresholds and tool names. Teach the mechanism, not the marketing.
-3. **Reflection ("The bigger lesson: ...")**: one short paragraph that zooms out —
+4. **Reflection ("The bigger lesson: ...")**: one short paragraph that zooms out —
    what this topic teaches about building systems in general. Mandatory.
-4. **CTA**: ONE easy-to-answer question + 👇.
-5. **Hashtags**: exactly 2-3, niche, at the end (e.g. #RAG #AIEngineering). Never
+5. **CTA**: ONE easy-to-answer question + 👇.
+6. **Hashtags**: exactly 2-3, niche, at the end (e.g. #RAG #AIEngineering). Never
    more — 6+ measurably hurts reach.
 
 No external links in the body. Optimize for saves: the post should read as

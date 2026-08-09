@@ -30,6 +30,8 @@ status: ready
 
 If retrieval failed, the answer is doomed at birth — and the model doesn't even know it.
 
+The diagram is that loop drawn out: two checkpoints ("does the context answer it?", "is every claim supported?") guard the way to the final answer, and every "no" routes back through a query rewrite — capped at 3 passes so cost stays bounded.
+
 Agentic RAG turns the line into a loop. The LLM becomes the pipeline's operator:
 
 1. Decides IF it should search — "what's 15% of 300?" needs no retrieval.

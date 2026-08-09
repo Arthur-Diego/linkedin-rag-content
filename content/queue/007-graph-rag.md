@@ -24,7 +24,9 @@ status: ready
 
 One question, and your entire RAG breaks. Not because the model is weak — because similarity search answers LOCAL questions, where the answer lives in 1-2 chunks. Global questions have no right chunk: the answer is scattered across the collection.
 
-Graph RAG changes the structure:
+The diagram splits the world in two: local questions ride vector search and land on 1-2 chunks (green); global questions hit a red dead end there — no single right chunk exists — and only the knowledge-graph route, with entities and community summaries, reaches an answer.
+
+Graph RAG builds that route:
 
 1. At indexing, an LLM extracts entities and relations from each document → knowledge graph.
 

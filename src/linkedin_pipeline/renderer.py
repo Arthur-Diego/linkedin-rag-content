@@ -110,15 +110,6 @@ def render_card(post, out_path: Path, background: Image.Image | None = None) -> 
             y += 58
         y += 26
 
-    footer_font = _font(False, 34)
-    footer = "Arthur Diego  ·  RAG in practice"
-    fy = HEIGHT - MARGIN - 40
-    draw.line([MARGIN, fy - 30, WIDTH - MARGIN, fy - 30], fill=(72, 86, 112), width=2)
-    draw.text((MARGIN, fy), footer, font=footer_font, fill=MUTED)
-    num = f"#{post.id}"
-    draw.text((WIDTH - MARGIN - draw.textlength(num, font=footer_font), fy),
-              num, font=footer_font, fill=MUTED)
-
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img.save(out_path, "PNG")
     return out_path

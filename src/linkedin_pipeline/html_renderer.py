@@ -38,7 +38,6 @@ def build_html(post, assets_dir: Path = DEFAULT_ASSETS) -> str:
         .replace("{{TITLE}}", html.escape(headline))
         .replace("{{DIAGRAM}}", html.escape(diagram))
         .replace("{{TAKEAWAYS}}", _takeaways_html(image_meta.get("bullets") or []))
-        .replace("{{NUMBER}}", html.escape(post.id))
     )
 
 

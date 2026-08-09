@@ -30,13 +30,12 @@
   }
   #card > * { position: relative; }
 
-  .top { display: flex; align-items: center; justify-content: space-between; }
+  .top { display: flex; align-items: center; }
   .chip {
     display: inline-block; padding: 10px 22px; border-radius: 999px;
     background: #0284c7; color: #fff;
     font-size: 24px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
   }
-  .brand-top { font-size: 24px; font-weight: 600; color: #64748b; }
 
   h1 {
     margin-top: 34px;
@@ -58,7 +57,7 @@
   #diagram-box { display: flex; align-items: center; justify-content: center; }
   #diagram-box svg { display: block; }
 
-  .takeaways { margin-top: 34px; display: flex; flex-direction: column; gap: 16px; }
+  .takeaways { margin-top: 34px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 16px; }
   .takeaway { display: flex; align-items: flex-start; gap: 16px; font-size: 27px; line-height: 1.35; }
   .takeaway .num {
     flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px;
@@ -67,31 +66,18 @@
     display: flex; align-items: center; justify-content: center; margin-top: 2px;
   }
   .takeaway b { font-weight: 600; }
-
-  .footer {
-    margin-top: 36px; padding-top: 24px;
-    border-top: 1px solid #d7dfe9;
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: 25px; color: #64748b;
-  }
-  .footer .author { font-weight: 600; color: #334155; }
 </style>
 </head>
 <body>
 <div id="card">
   <div class="top">
     <span class="chip">{{TOPIC}}</span>
-    <span class="brand-top">RAG in practice</span>
   </div>
   <h1>{{TITLE}}</h1>
   <div class="diagram-panel">
     <div id="diagram-box"><pre class="mermaid">{{DIAGRAM}}</pre></div>
   </div>
   <div class="takeaways">{{TAKEAWAYS}}</div>
-  <div class="footer">
-    <span><span class="author">Arthur Diego</span> · RAG in practice</span>
-    <span>#{{NUMBER}}</span>
-  </div>
 </div>
 
 <script src="{{ASSETS}}/vendor/mermaid.min.js"></script>
