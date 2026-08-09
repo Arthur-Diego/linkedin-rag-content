@@ -1,26 +1,25 @@
 ---
-id: "001"
+id: '001'
 topic: chunking
-title: "Chunking: where most RAG pipelines die"
+title: 'Chunking: where most RAG pipelines die'
 image:
-  headline: "Chunking decides your RAG ceiling"
-  diagram: |
-    flowchart LR
-        DOC["Document"]:::accent --> FIX["Fixed-size cut<br/>500 tokens"]
-        DOC --> STR["Structure-aware cut<br/>headings + paragraphs"]
-        FIX --> BAD["Broken tables<br/>orphan clauses"]:::bad
-        STR --> GOOD["10-20% overlap<br/>+ metadata"]:::good
-        BAD --> LOW["Low recall"]:::bad
-        GOOD --> DB[("Vector DB")]:::accent
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: Chunking decides your RAG ceiling
+  diagram: "flowchart LR\n    DOC[\"Document\"]:::accent --> FIX[\"Fixed-size cut<br/>500\
+    \ tokens\"]\n    DOC --> STR[\"Structure-aware cut<br/>headings + paragraphs\"\
+    ]\n    FIX --> BAD[\"Broken tables<br/>orphan clauses\"]:::bad\n    STR --> GOOD[\"\
+    10-20% overlap<br/>+ metadata\"]:::good\n    BAD --> LOW[\"Low recall\"]:::bad\n\
+    \    GOOD --> DB[(\"Vector DB\")]:::accent\n    classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n\
+    \    classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d\n    classDef accent\
+    \ fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "Split along structure, not token counts — headings and paragraphs are free boundaries"
-    - "10-20% overlap keeps context alive at chunk borders"
-    - "Measure recall on 50 known questions before switching strategies"
-alt_text: "Diagram comparing fixed-size chunking with structure-aware chunking in a RAG pipeline"
-status: ready
+  - Split along structure, not token counts — headings and paragraphs are free boundaries
+  - 10-20% overlap keeps context alive at chunk borders
+  - Measure recall on 50 known questions before switching strategies
+alt_text: Diagram comparing fixed-size chunking with structure-aware chunking in a
+  RAG pipeline
+status: published
+published_at: '2026-08-09T21:47:30+00:00'
+linkedin_post_id: urn:li:share:7492335775976566784
 ---
 500 tokens. That's where most RAG pipelines quietly break.
 
