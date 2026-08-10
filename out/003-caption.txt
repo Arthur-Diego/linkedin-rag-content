@@ -1,0 +1,17 @@
+2 searches. 1 fusion formula. That's the cheapest retrieval upgrade in RAG.
+
+Vector search finds what the user meant. Lexical search finds what the user typed. Each engine alone carries a blind spot — vectors miss exact codes, BM25 misses synonyms — and RRF fusion erases both weaknesses in one move.
+
+Production traffic proves it daily:
+
+A user asks about error "ORA-01555" — vector search returns semantically similar documents, but not THE document. An exact code isn't semantics. BM25 nails it.
+
+Another asks "how to cancel my subscription" — the document says "plan termination". Zero term overlap, BM25 is blind. Vectors get it instantly.
+
+The fix: run both, then merge with Reciprocal Rank Fusion. Each document scores by its position in each ranking; sum the points. No weights to tune, no score normalization — and it consistently beats either search alone.
+
+The bigger lesson: most RAG upgrades are trade-offs. Hybrid search is one of the few free lunches — your vector store almost certainly already supports it as configuration.
+
+Is your retrieval hybrid yet? 👇
+
+#RAG #InformationRetrieval #AIEngineering
