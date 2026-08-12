@@ -1,26 +1,25 @@
 ---
-id: "004"
+id: '004'
 topic: reranking
-title: "Reranking: precision after recall"
+title: 'Reranking: precision after recall'
 image:
-  headline: "Retrieve wide, rerank hard, send only the best"
-  diagram: |
-    flowchart LR
-        DOCS[("1M docs")]:::accent --> RET["Hybrid retrieval<br/>top-50 &middot; recall"]
-        RET --> RAW["Send raw top-20<br/>to the LLM"]
-        RAW --> NOISE["Noisy context<br/>hallucinations"]:::bad
-        RET --> RR["Cross-encoder<br/>rerank &middot; precision"]:::good
-        RR --> TOP5["Top-5 only"]:::good
-        TOP5 --> LLM["LLM answer<br/>grounded + cheaper"]:::accent
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: Retrieve wide, rerank hard, send only the best
+  diagram: "flowchart LR\n    DOCS[(\"1M docs\")]:::accent --> RET[\"Hybrid retrieval<br/>top-50\
+    \ &middot; recall\"]\n    RET --> RAW[\"Send raw top-20<br/>to the LLM\"]\n  \
+    \  RAW --> NOISE[\"Noisy context<br/>hallucinations\"]:::bad\n    RET --> RR[\"\
+    Cross-encoder<br/>rerank &middot; precision\"]:::good\n    RR --> TOP5[\"Top-5\
+    \ only\"]:::good\n    TOP5 --> LLM[\"LLM answer<br/>grounded + cheaper\"]:::accent\n\
+    \    classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n    classDef good\
+    \ fill:#dcfce7,stroke:#22c55e,color:#14532d\n    classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "Bi-encoders compare vectors; cross-encoders read query + document together"
-    - "Rerank 50 candidates, keep 5 — precision where it matters"
-    - "Open-source BGE rerankers run on CPU for lists this small"
-alt_text: "Diagram of a RAG pipeline where hybrid retrieval fetches top-50 candidates and a cross-encoder reranker keeps only the top-5"
-status: ready
+  - Bi-encoders compare vectors; cross-encoders read query + document together
+  - Rerank 50 candidates, keep 5 — precision where it matters
+  - Open-source BGE rerankers run on CPU for lists this small
+alt_text: Diagram of a RAG pipeline where hybrid retrieval fetches top-50 candidates
+  and a cross-encoder reranker keeps only the top-5
+status: published
+published_at: '2026-08-12T12:27:06+00:00'
+linkedin_post_id: urn:li:share:7493281908697677825
 ---
 50 in, 5 out. That ratio fixes more RAG systems than any model upgrade.
 
