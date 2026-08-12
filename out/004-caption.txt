@@ -1,0 +1,21 @@
+50 in, 5 out. That ratio fixes more RAG systems than any model upgrade.
+
+Vector search uses bi-encoders: query and document become vectors separately, then get compared. Fast enough for millions of documents — but the two texts never actually read each other.
+
+A reranker is a cross-encoder: it reads query and document TOGETHER and scores real relevance. Too slow for a whole corpus, perfect for a short list.
+
+The contrast is stark: dump the raw top-20 into the model and noise plus hallucinations ride along; insert a reranker and only 5 precision-picked chunks reach the LLM.
+
+The production pattern:
+
+1. Hybrid retrieval brings top-50 → optimizes recall.
+2. Cross-encoder reranks them → optimizes precision.
+3. Only top-5 reach the LLM context.
+
+The side effect nobody prices in: less junk context means fewer hallucinations — the model stops guessing which of 20 passages matters. And a 5-chunk context is also cheaper and faster than a 20-chunk one.
+
+The bigger lesson: retrieval and ranking are different jobs. Doing both with one similarity score is asking one metric to carry your whole pipeline.
+
+Open-source BGE rerankers run fine on CPU for 50 documents. Do you rerank today? 👇
+
+#RAG #Reranking #AIEngineering
