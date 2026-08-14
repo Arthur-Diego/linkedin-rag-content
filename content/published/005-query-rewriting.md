@@ -1,28 +1,26 @@
 ---
-id: "005"
+id: '005'
 topic: query rewriting
-title: "Query rewriting: fix the question before the search"
+title: 'Query rewriting: fix the question before the search'
 image:
-  headline: "The worst input in your pipeline is the query"
-  diagram: |
-    flowchart LR
-        Q["Vague question<br/>'report thing broken'"]:::bad --> MQ["Multi-query<br/>3 variations"]
-        Q --> HY["HyDE<br/>hypothetical answer"]
-        Q --> DE["Decompose<br/>1 question &rarr; 2 searches"]
-        MQ --> S["Parallel<br/>searches"]:::accent
-        HY --> S
-        DE --> S
-        S --> RRF["RRF merge"]:::good
-        RRF --> DOCS["Right documents<br/>found"]:::good
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: The worst input in your pipeline is the query
+  diagram: "flowchart LR\n    Q[\"Vague question<br/>'report thing broken'\"]:::bad\
+    \ --> MQ[\"Multi-query<br/>3 variations\"]\n    Q --> HY[\"HyDE<br/>hypothetical\
+    \ answer\"]\n    Q --> DE[\"Decompose<br/>1 question &rarr; 2 searches\"]\n  \
+    \  MQ --> S[\"Parallel<br/>searches\"]:::accent\n    HY --> S\n    DE --> S\n\
+    \    S --> RRF[\"RRF merge\"]:::good\n    RRF --> DOCS[\"Right documents<br/>found\"\
+    ]:::good\n    classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n    classDef\
+    \ good fill:#dcfce7,stroke:#22c55e,color:#14532d\n    classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "Multi-query bridges the gap between user jargon and document jargon"
-    - "HyDE: a hypothetical answer looks more like the real document than the question does"
-    - "One extra call to a small model — latency up a little, correct answers up a lot"
-alt_text: "Diagram showing a vague query being rewritten via multi-query, HyDE and decomposition before searching"
-status: ready
+  - Multi-query bridges the gap between user jargon and document jargon
+  - 'HyDE: a hypothetical answer looks more like the real document than the question
+    does'
+  - One extra call to a small model — latency up a little, correct answers up a lot
+alt_text: Diagram showing a vague query being rewritten via multi-query, HyDE and
+  decomposition before searching
+status: published
+published_at: '2026-08-14T13:00:28+00:00'
+linkedin_post_id: urn:li:share:7494015083702906880
 ---
 Months tuning the index. Zero minutes fixing the questions that hit it.
 
