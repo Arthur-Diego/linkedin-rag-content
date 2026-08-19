@@ -1,24 +1,26 @@
 ---
-id: "007"
+id: '007'
 topic: graph rag
-title: "Graph RAG: when similarity can't reach the answer"
+title: 'Graph RAG: when similarity can''t reach the answer'
 image:
-  headline: "Local questions need chunks. Global questions need graphs."
-  diagram: |
-    flowchart LR
-        Q1["Local question<br/>'what is X?'"]:::accent --> V["Vector search"] --> A1["Answer lives in<br/>1-2 chunks"]:::good
-        Q2["Global question<br/>themes &middot; connections"]:::accent --> V2["Vector search"] -.-> MISS["No single<br/>right chunk"]:::bad
-        Q2 --> KG["Knowledge graph<br/>entities + relations"]
-        KG --> COM["Community<br/>summaries"] --> A2["Answer spans the<br/>whole collection"]:::good
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: Local questions need chunks. Global questions need graphs.
+  diagram: "flowchart LR\n    Q1[\"Local question<br/>'what is X?'\"]:::accent -->\
+    \ V[\"Vector search\"] --> A1[\"Answer lives in<br/>1-2 chunks\"]:::good\n   \
+    \ Q2[\"Global question<br/>themes &middot; connections\"]:::accent --> V2[\"Vector\
+    \ search\"] -.-> MISS[\"No single<br/>right chunk\"]:::bad\n    Q2 --> KG[\"Knowledge\
+    \ graph<br/>entities + relations\"]\n    KG --> COM[\"Community<br/>summaries\"\
+    ] --> A2[\"Answer spans the<br/>whole collection\"]:::good\n    classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n\
+    \    classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d\n    classDef accent\
+    \ fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "An LLM extracts entities and relations at indexing time and builds the graph"
-    - "Community detection + pre-generated summaries answer the big-picture questions"
-    - "LLM-powered indexing is expensive — adopt it only where vectors provably fail"
-alt_text: "Diagram comparing vector RAG for local questions with Graph RAG using a knowledge graph for global questions"
-status: ready
+  - An LLM extracts entities and relations at indexing time and builds the graph
+  - Community detection + pre-generated summaries answer the big-picture questions
+  - LLM-powered indexing is expensive — adopt it only where vectors provably fail
+alt_text: Diagram comparing vector RAG for local questions with Graph RAG using a
+  knowledge graph for global questions
+status: published
+published_at: '2026-08-19T11:51:46+00:00'
+linkedin_post_id: urn:li:share:7495809734818770945
 ---
 "What are the main themes across these 10,000 documents?"
 
