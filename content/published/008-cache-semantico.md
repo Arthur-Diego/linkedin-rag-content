@@ -1,25 +1,26 @@
 ---
-id: "008"
+id: 008
 topic: semantic cache
-title: "Semantic caching: the most ignored cost lever in RAG"
+title: 'Semantic caching: the most ignored cost lever in RAG'
 image:
-  headline: "Same question, a thousand phrasings: cache by meaning"
-  diagram: |
-    flowchart LR
-        Q["New question"]:::accent --> SIM{"Similar to a cached<br/>question? &ge; 0.95"}
-        SIM -- "yes" --> HIT["Cached answer<br/>~ms &middot; $0"]:::good
-        SIM -- "no" --> PIPE["Full pipeline<br/>retrieve + generate"]
-        PIPE --> STORE["Store answer<br/>+ source doc ids"]:::accent
-        STORE -.-> INV["Doc updated &rarr;<br/>expire entries"]:::bad
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: 'Same question, a thousand phrasings: cache by meaning'
+  diagram: "flowchart LR\n    Q[\"New question\"]:::accent --> SIM{\"Similar to a\
+    \ cached<br/>question? &ge; 0.95\"}\n    SIM -- \"yes\" --> HIT[\"Cached answer<br/>~ms\
+    \ &middot; $0\"]:::good\n    SIM -- \"no\" --> PIPE[\"Full pipeline<br/>retrieve\
+    \ + generate\"]\n    PIPE --> STORE[\"Store answer<br/>+ source doc ids\"]:::accent\n\
+    \    STORE -.-> INV[\"Doc updated &rarr;<br/>expire entries\"]:::bad\n    classDef\
+    \ bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n    classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d\n\
+    \    classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "Cache by embedding similarity, not string equality — phrasings never repeat exactly"
-    - "Threshold ~0.95: 'cancel plan A' and 'cancel plan B' are neighbors with different answers"
-    - "Store source doc ids with each answer; invalidate when the source changes"
-alt_text: "Diagram of a semantic cache checking embedding similarity before running the full RAG pipeline"
-status: ready
+  - Cache by embedding similarity, not string equality — phrasings never repeat exactly
+  - 'Threshold ~0.95: ''cancel plan A'' and ''cancel plan B'' are neighbors with different
+    answers'
+  - Store source doc ids with each answer; invalidate when the source changes
+alt_text: Diagram of a semantic cache checking embedding similarity before running
+  the full RAG pipeline
+status: published
+published_at: '2026-08-21T12:32:24+00:00'
+linkedin_post_id: urn:li:share:7496544738217680897
 ---
 30% of production RAG traffic is the same 50 questions, rephrased.
 
