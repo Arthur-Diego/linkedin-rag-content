@@ -1,0 +1,19 @@
+30% of production RAG traffic is the same 50 questions, rephrased.
+
+"How do I get an invoice copy?", "invoice copy", "resend my invoice" — three strings, one question, three full pipeline runs. Paying the LLM every time.
+
+Traditional caching can't help: the key never matches, because the phrasing never repeats. A semantic cache compares by embedding, and the whole system is one decision: similarity ≥ 0.95 with an already-answered question takes the shortcut (cached answer, ~ms, $0); anything below runs the full pipeline and stores the new answer with its source doc ids for invalidation.
+
+Three decisions separate a useful cache from a wrong-answer factory:
+
+1. Conservative threshold (~0.95). "Cancel plan A" and "cancel plan B" are vector-space neighbors with different answers — and a cache false positive is a wrong answer served with confidence.
+
+2. Source-based invalidation. Store the doc ids behind each answer; document updated → entries expire.
+
+3. Per-tenant scope. Permission-dependent answers must never leak through a global cache.
+
+The bigger lesson: you already compute the embedding for every question. The cheapest optimization is reusing work you've already paid for.
+
+How often does your pipeline answer the same thing twice? 👇
+
+#RAG #FinOps #AIEngineering
