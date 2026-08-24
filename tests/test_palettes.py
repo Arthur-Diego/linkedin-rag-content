@@ -25,6 +25,24 @@ def test_unknown_topic_falls_back_to_default():
     assert palettes.resolve_palette(post).name == "default"
 
 
+def test_ai_palette_is_orange():
+    post = _post({"id": "1", "topic": "ai agents", "image": {"palette": "ai"}})
+    pal = palettes.resolve_palette(post)
+    assert pal.name == "ai" and pal.accent_name == "orange"
+
+
+def test_orange_alias_resolves_to_ai_palette():
+    post = _post({"id": "1", "topic": "whatever", "image": {"palette": "orange"}})
+    assert palettes.resolve_palette(post).accent_name == "orange"
+
+
+def test_ai_topic_autodetects_but_spring_ai_stays_green():
+    assert palettes.resolve_palette(_post({"id": "1", "topic": "AI agents"})).name == "ai"
+    assert palettes.resolve_palette(_post({"id": "2", "topic": "LLM eval"})).name == "ai"
+    # "spring ai" must resolve to spring, not ai (spring pattern is checked first)
+    assert palettes.resolve_palette(_post({"id": "3", "topic": "spring ai"})).name == "spring"
+
+
 def test_unknown_explicit_palette_falls_back_to_default():
     post = _post({"id": "1", "topic": "java", "image": {"palette": "chartreuse"}})
     # invalid name is ignored, but topic still matches java

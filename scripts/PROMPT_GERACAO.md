@@ -19,9 +19,9 @@ Everything in English.
 
 `id` (3-digit string), `topic`, `title`, `image.headline`, `image.diagram`,
 `image.bullets` (exactly 3), `alt_text`, `status: ready`. Optional `image.palette`:
-per-subject accent color, same layout — `java` (red), `spring` (green); omit for
-the default violet. Unknown/absent falls back to violet (matched by topic as a
-safety net). Add subjects in `src/linkedin_pipeline/palettes.py`. Optional `image.style`:
+per-subject accent color, same layout — `java` (red), `spring` (green), `ai`/`orange`
+(orange); omit for the default violet. Unknown/absent falls back to violet (matched
+by topic as a safety net). Add subjects in `src/linkedin_pipeline/palettes.py`. Optional `image.style`:
 the default is **free** (creative card with the fixed dark/violet series
 identity, one 3D panel per takeaway); set `spec` only to force a strict
 diagram-drawn card. ALWAYS include `image.diagram` (it powers the free-tier

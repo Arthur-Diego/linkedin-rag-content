@@ -34,8 +34,9 @@ by GitHub Actions 3x/week.
   (must include `image.diagram`, Mermaid); published ones move to
   `content/published/`.
 - Card color per subject: same layout, accent family swapped via `image.palette`
-  (`java`=red, `spring`=green; omit for the default violet). Palettes live in
-  `src/linkedin_pipeline/palettes.py`; only the gpt-image-2 renderer honors them.
+  (`java`=red, `spring`=green, `ai`/`orange`=orange; omit for the default violet).
+  Palettes live in `src/linkedin_pipeline/palettes.py`; only the gpt-image-2
+  renderer honors them.
 - New content follows the hard rules in `scripts/PROMPT_GERACAO.md` (hook, length,
   diagram density) — they encode measured LinkedIn performance data.
 - Language of content, code and docs: English (target audience: international).

@@ -48,14 +48,26 @@ PALETTES: dict[str, Palette] = {
         accent_family="vibrant emerald/green (#22c55e, #4ade80)",
         accent_name="green",
     ),
+    "ai": Palette(
+        name="ai",
+        bg="dark near-black background with a subtle warm amber undertone "
+           "(deep #140f0a → #2a1c12 tones)",
+        accent_family="vibrant orange/amber (#f97316, #fb923c)",
+        accent_name="orange",
+    ),
 }
+
+# Color-name aliases: an explicit image.palette may name the color instead of the
+# subject. They point at the same Palette object as the subject key above.
+PALETTES["orange"] = PALETTES["ai"]
 
 # Fallback topic-keyword matching, tried only when image.palette is absent.
 # Word-boundary patterns so "javascript" does NOT match the "java" palette.
 # First match wins; add new subjects here as new palettes are introduced.
 _TOPIC_PATTERNS: list[tuple[str, str]] = [
     ("java", r"\bjava\b"),
-    ("spring", r"\bspring\b"),
+    ("spring", r"\bspring\b"),  # must precede "ai" so "spring ai" stays green
+    ("ai", r"\b(ai|ia|llm|genai)\b"),
 ]
 
 
