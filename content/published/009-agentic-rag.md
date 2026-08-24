@@ -1,30 +1,28 @@
 ---
-id: "009"
+id: 009
 topic: agentic rag
-title: "Agentic RAG: when the pipeline becomes a loop"
+title: 'Agentic RAG: when the pipeline becomes a loop'
 image:
-  headline: "Search, evaluate, search again — with a budget"
-  diagram: |
-    flowchart LR
-        Q["Question"]:::accent --> NEED{"Needs<br/>retrieval?"}
-        NEED -- "no" --> DIRECT["Answer<br/>directly"]:::good
-        NEED -- "yes" --> SEARCH["Search"]
-        SEARCH --> CHECK{"Context<br/>answers it?"}
-        CHECK -- "no &middot; max 3" --> RW["Rewrite<br/>query"]:::bad
-        RW --> SEARCH
-        CHECK -- "yes" --> DRAFT["Draft<br/>answer"]
-        DRAFT --> CRIT{"Claims<br/>supported?"}
-        CRIT -- "no" --> SEARCH
-        CRIT -- "yes" --> FINAL["Final<br/>answer"]:::good
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: Search, evaluate, search again — with a budget
+  diagram: "flowchart LR\n    Q[\"Question\"]:::accent --> NEED{\"Needs<br/>retrieval?\"\
+    }\n    NEED -- \"no\" --> DIRECT[\"Answer<br/>directly\"]:::good\n    NEED --\
+    \ \"yes\" --> SEARCH[\"Search\"]\n    SEARCH --> CHECK{\"Context<br/>answers it?\"\
+    }\n    CHECK -- \"no &middot; max 3\" --> RW[\"Rewrite<br/>query\"]:::bad\n  \
+    \  RW --> SEARCH\n    CHECK -- \"yes\" --> DRAFT[\"Draft<br/>answer\"]\n    DRAFT\
+    \ --> CRIT{\"Claims<br/>supported?\"}\n    CRIT -- \"no\" --> SEARCH\n    CRIT\
+    \ -- \"yes\" --> FINAL[\"Final<br/>answer\"]:::good\n    classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n\
+    \    classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d\n    classDef accent\
+    \ fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "The LLM decides IF, WHERE and HOW MANY TIMES to search — instead of one blind shot"
-    - "A single 'does this context answer it?' check kills a whole family of hallucinations"
-    - "Cap the loop at 2-3 iterations: cost and latency grow with every pass"
-alt_text: "Diagram of an agentic RAG loop where the LLM evaluates retrieval quality and retries before answering"
-status: ready
+  - The LLM decides IF, WHERE and HOW MANY TIMES to search — instead of one blind
+    shot
+  - A single 'does this context answer it?' check kills a whole family of hallucinations
+  - 'Cap the loop at 2-3 iterations: cost and latency grow with every pass'
+alt_text: Diagram of an agentic RAG loop where the LLM evaluates retrieval quality
+  and retries before answering
+status: published
+published_at: '2026-08-24T12:19:51+00:00'
+linkedin_post_id: urn:li:share:7497628742211518464
 ---
 1 shot. That's what a traditional RAG pipeline gets: search once, build context, answer.
 
