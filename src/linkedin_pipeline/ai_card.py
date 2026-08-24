@@ -7,6 +7,8 @@ from pathlib import Path
 
 import requests
 
+from . import palettes
+
 OPENAI_API = "https://api.openai.com/v1/images/generations"
 MODEL = "gpt-image-2"
 SIZE = "1088x1360"  # exact 4:5 portrait, multiples of 16
@@ -22,16 +24,15 @@ CORE IDEAS — one visual panel per idea, in this order:
 {takeaways}
 
 VISUAL IDENTITY (fixed series style — every card must look like a sibling of the \
-others): dark near-black navy background (deep #0a0a14 → #12122a tones), vibrant \
-violet/purple (#7c5cff, #a78bfa) as the single accent family, white extra-bold \
-modern sans-serif headline at the top with 1-2 key words highlighted in purple, \
-one glossy 3D isometric vector object as the hero visual near the headline \
-(cube, sphere, device — pick the best metaphor for the topic), and below it \
-rounded dark panels with thin outlines — ONE panel per core idea, each numbered \
-in a small purple square (1, 2, 3), each panel illustrating its idea with small \
-3D vector elements, green check marks for right/good and red crosses for \
-wrong/bad. Subtle glow and depth shadows. Premium tech-brand editorial style, \
-generous spacing, nothing cluttered.
+others): {bg}, {accent_family} as the single accent family, white extra-bold \
+modern sans-serif headline at the top with 1-2 key words highlighted in \
+{accent_name}, one glossy 3D isometric vector object as the hero visual near the \
+headline (cube, sphere, device — pick the best metaphor for the topic), and \
+below it rounded dark panels with thin outlines — ONE panel per core idea, each \
+numbered in a small {accent_name} square (1, 2, 3), each panel illustrating its \
+idea with small 3D vector elements, green check marks for right/good and red \
+crosses for wrong/bad. Subtle glow and depth shadows. Premium tech-brand \
+editorial style, generous spacing, nothing cluttered.
 
 CREATIVE FREEDOM: within that identity, you choose the metaphors, objects and \
 per-panel compositions that best explain THIS topic.
@@ -94,8 +95,11 @@ def build_prompt(post) -> str:
     takeaways = "\n".join(f"{i}. {b}" for i, b in enumerate(bullets[:3], start=1))
 
     if resolve_style(post) == "free":
+        palette = palettes.resolve_palette(post)
         return FREE_PROMPT_TEMPLATE.format(
-            topic=topic, headline=headline, takeaways=takeaways)
+            topic=topic, headline=headline, takeaways=takeaways,
+            bg=palette.bg, accent_family=palette.accent_family,
+            accent_name=palette.accent_name)
 
     diagram = image_meta.get("diagram")
     if not diagram:
@@ -108,7 +112,8 @@ def build_prompt(post) -> str:
 def render_card(api_key: str, post, out_path: Path,
                 quality: str = DEFAULT_QUALITY) -> Path:
     """Generate the card with gpt-image-2; raises AICardError on any failure."""
-    print(f"AI card style: {resolve_style(post)}")
+    print(f"AI card style: {resolve_style(post)} / palette: "
+          f"{palettes.resolve_palette(post).name}")
     resp = requests.post(
         OPENAI_API,
         headers={"Authorization": f"Bearer {api_key}"},

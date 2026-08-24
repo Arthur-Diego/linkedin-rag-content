@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-from . import ai_card, html_renderer, linkedin, queue_store, renderer
+from . import ai_card, html_renderer, linkedin, palettes, queue_store, renderer
 
 
 def _gh_output(**kwargs) -> None:
@@ -47,6 +47,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Publish the next post in the queue.")
     parser.add_argument("--root", type=Path, default=Path.cwd(),
                         help="repository root (default: cwd)")
+    parser.add_argument("--list", action="store_true", dest="list_queue",
+                        help="print the ready queue in publication order and exit")
     parser.add_argument("--dry-run", action="store_true",
                         help="render artifacts without publishing or consuming the queue")
     parser.add_argument("--render-only", action="store_true",
@@ -58,6 +60,18 @@ def main(argv: list[str] | None = None) -> int:
     if args.render_only and args.publish_only:
         parser.error("--render-only and --publish-only are mutually exclusive")
     root = args.root.resolve()
+
+    if args.list_queue:
+        ready = queue_store.list_ready(root)
+        if not ready:
+            print("Queue empty: no 'ready' post in content/queue/")
+            return 0
+        print(f"Next up in the queue ({len(ready)} ready, top publishes first):\n")
+        for i, p in enumerate(ready, start=1):
+            palette = palettes.resolve_palette(p).name
+            topic = str(p.meta.get("topic", "?"))
+            print(f"  {i:>2}. [{p.id}] {topic:<16} · palette:{palette:<8} · {p.title}")
+        return 0
 
     post = queue_store.next_post(root)
     if post is None:

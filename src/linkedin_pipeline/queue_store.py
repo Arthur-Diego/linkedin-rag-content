@@ -53,6 +53,11 @@ def _ready_posts(root: Path) -> list[Post]:
     return [p for p in posts if p.meta.get("status") == "ready"]
 
 
+def list_ready(root: Path) -> list[Post]:
+    """All 'ready' posts, in publication order (lowest id first)."""
+    return sorted(_ready_posts(root), key=lambda p: p.id)
+
+
 def next_post(root: Path) -> Post | None:
     """The 'ready' post with the lowest id, or None if the queue is empty."""
     posts = _ready_posts(root)
