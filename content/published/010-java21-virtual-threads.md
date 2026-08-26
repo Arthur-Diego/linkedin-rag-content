@@ -1,26 +1,25 @@
 ---
-id: "010"
+id: '010'
 topic: java
-title: "Java 21 virtual threads: blocking code that finally scales"
+title: 'Java 21 virtual threads: blocking code that finally scales'
 image:
   palette: java
-  headline: "Virtual threads: blocking code that scales"
-  diagram: |
-    flowchart LR
-        REQ["10k requests"]:::accent --> POOL["200-thread<br/>pool"]:::bad
-        POOL --> BLOCK["Stalls on<br/>I/O waits"]:::bad
-        REQ --> VT["Virtual<br/>thread each"]:::good
-        VT --> SCALE["Millions of<br/>cheap waits"]:::good
-        SCALE --> WIN["3k &rarr; 12k<br/>req/s"]:::accent
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: 'Virtual threads: blocking code that scales'
+  diagram: "flowchart LR\n    REQ[\"10k requests\"]:::accent --> POOL[\"200-thread<br/>pool\"\
+    ]:::bad\n    POOL --> BLOCK[\"Stalls on<br/>I/O waits\"]:::bad\n    REQ --> VT[\"\
+    Virtual<br/>thread each\"]:::good\n    VT --> SCALE[\"Millions of<br/>cheap waits\"\
+    ]:::good\n    SCALE --> WIN[\"3k &rarr; 12k<br/>req/s\"]:::accent\n    classDef\
+    \ bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n    classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d\n\
+    \    classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "Platform pool ~3,100 req/s vs virtual threads ~12,400 — same blocking code"
-    - "Cheap for I/O waits, useless for CPU-bound work — pick the right spot"
-    - "Never pool them: one virtual thread per task, that is the whole point"
-alt_text: "Diagram comparing a saturated 200-thread pool against a virtual-thread-per-request model that scales throughput"
-status: ready
+  - Platform pool ~3,100 req/s vs virtual threads ~12,400 — same blocking code
+  - Cheap for I/O waits, useless for CPU-bound work — pick the right spot
+  - 'Never pool them: one virtual thread per task, that is the whole point'
+alt_text: Diagram comparing a saturated 200-thread pool against a virtual-thread-per-request
+  model that scales throughput
+status: published
+published_at: '2026-08-26T12:03:24+00:00'
+linkedin_post_id: urn:li:share:7498349379293151232
 ---
 3,100 to 12,400 requests per second. Same code, one switch.
 
