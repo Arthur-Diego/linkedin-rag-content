@@ -1,27 +1,26 @@
 ---
-id: "011"
+id: '011'
 topic: java
-title: "Java 21 virtual threads in production: the pinning trap"
+title: 'Java 21 virtual threads in production: the pinning trap'
 image:
   palette: java
-  headline: "Virtual threads: mind the pinning trap"
-  diagram: |
-    flowchart LR
-        VT["Virtual<br/>thread"]:::accent --> SYNC["synchronized<br/>block"]:::bad
-        SYNC --> PIN["Pinned to<br/>carrier"]:::bad
-        PIN --> STALL["Carriers<br/>starved"]:::bad
-        VT --> LOCK["ReentrantLock"]:::good
-        LOCK --> FREE["Unmounts<br/>while waiting"]:::good
-        FREE --> SAFE["Carriers<br/>stay free"]:::accent
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: 'Virtual threads: mind the pinning trap'
+  diagram: "flowchart LR\n    VT[\"Virtual<br/>thread\"]:::accent --> SYNC[\"synchronized<br/>block\"\
+    ]:::bad\n    SYNC --> PIN[\"Pinned to<br/>carrier\"]:::bad\n    PIN --> STALL[\"\
+    Carriers<br/>starved\"]:::bad\n    VT --> LOCK[\"ReentrantLock\"]:::good\n   \
+    \ LOCK --> FREE[\"Unmounts<br/>while waiting\"]:::good\n    FREE --> SAFE[\"Carriers<br/>stay\
+    \ free\"]:::accent\n    classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n\
+    \    classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d\n    classDef accent\
+    \ fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "A blocking synchronized block pins the carrier — a few can starve every core"
-    - "Netflix hit timeouts from pinning long before any CPU maxed out"
-    - "Java 24 (JEP 491) ends synchronized pinning — until then, use ReentrantLock"
-alt_text: "Diagram contrasting a synchronized block that pins a virtual thread to its carrier against a ReentrantLock that lets it unmount"
-status: ready
+  - A blocking synchronized block pins the carrier — a few can starve every core
+  - Netflix hit timeouts from pinning long before any CPU maxed out
+  - Java 24 (JEP 491) ends synchronized pinning — until then, use ReentrantLock
+alt_text: Diagram contrasting a synchronized block that pins a virtual thread to its
+  carrier against a ReentrantLock that lets it unmount
+status: published
+published_at: '2026-08-28T13:35:03+00:00'
+linkedin_post_id: urn:li:share:7499097216872165376
 ---
 Netflix flipped on virtual threads and watched healthy services freeze.
 
