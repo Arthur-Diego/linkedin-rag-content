@@ -1,0 +1,21 @@
+Virtual threads got the headlines. Three quieter Java 21 features reshape your architecture.
+
+Threads decide how a service scales. These decide how correct it is.
+
+Records collapse a DTO to one line — immutable and JSON-ready by default. Sealed interfaces plus pattern-matching switch let the compiler reject code that forgot a case. StructuredTaskScope makes a parallel fan-out behave like one unit.
+
+Picture a fan-out to three services — the executor-and-futures version leaks threads and swallows exceptions; the structured version cancels every sibling the instant one fails.
+
+Where they pay off in microservices:
+
+1. Model requests, responses and events as records — dozens of boilerplate lines vanish per type, and immutability removes serialization bugs.
+2. Represent outcomes as a sealed Success | Failure and switch over it; add a case, and every unhandled site stops compiling.
+3. Wrap parallel downstream calls in a StructuredTaskScope so one failure cancels the rest — no orphans, no lost errors.
+
+The bigger lesson: concurrency makes a service fast, the type system makes it trustworthy. Java 21's real upgrade is letting the compiler catch what used to reach production.
+
+Which of these three has earned a place in your stack? 👇
+
+📚 Part 3 of 3 — Java 21 for Microservices.
+
+#Java #Microservices
