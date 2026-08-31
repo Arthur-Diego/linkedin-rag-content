@@ -1,0 +1,19 @@
+20-plus models, one ChatClient. No Python sidecar required.
+
+That's the pitch of Spring AI — and for teams already on Spring, it lands hard. Since 1.0 GA, generative AI is a first-class citizen of the same stack that runs your microservices.
+
+Picture two ways to add an LLM to a service: one bolts on a separate Python app and hand-rolls the prompt, memory and retrieval glue; the other calls a ChatClient whose advisor chain handles all of it, like a filter chain for AI.
+
+What the ChatClient model buys you:
+
+1. Vendor neutrality — one API over 20-plus models, from Anthropic to OpenAI. Switch providers by config, not a rewrite.
+2. Advisors compose cross-cutting concerns — chat memory, RAG, logging, guardrails — without cluttering business logic.
+3. One runtime — the model call shares your JVM, tracing, metrics and security. No extra service to deploy and page on.
+
+The bigger lesson: the winning AI stack isn't the flashiest framework, it's the one your team already operates. Spring AI meets Java shops exactly where they are.
+
+Still routing AI calls through a separate Python service? 👇
+
+📚 Part 1 of 3 — Spring AI for Microservices. Next: turning a chat model into a RAG pipeline with one advisor.
+
+#SpringAI #Java
