@@ -1,26 +1,26 @@
 ---
-id: "012"
+id: '012'
 topic: java
-title: "Java 21 beyond threads: records, sealed types, structured concurrency"
+title: 'Java 21 beyond threads: records, sealed types, structured concurrency'
 image:
   palette: java
-  headline: "Java 21: the features beyond virtual threads"
-  diagram: |
-    flowchart LR
-        REQ["Fan-out<br/>request"]:::accent --> RAW["Executor<br/>+ futures"]:::bad
-        RAW --> LEAK["Leaks &middot;<br/>lost errors"]:::bad
-        REQ --> SCOPE["Structured<br/>TaskScope"]:::good
-        SCOPE --> CANCEL["One fails<br/>&rarr; all cancel"]:::good
-        CANCEL --> SAFE["No leaks<br/>clear errors"]:::accent
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: 'Java 21: the features beyond virtual threads'
+  diagram: "flowchart LR\n    REQ[\"Fan-out<br/>request\"]:::accent --> RAW[\"Executor<br/>+\
+    \ futures\"]:::bad\n    RAW --> LEAK[\"Leaks &middot;<br/>lost errors\"]:::bad\n\
+    \    REQ --> SCOPE[\"Structured<br/>TaskScope\"]:::good\n    SCOPE --> CANCEL[\"\
+    One fails<br/>&rarr; all cancel\"]:::good\n    CANCEL --> SAFE[\"No leaks<br/>clear\
+    \ errors\"]:::accent\n    classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n\
+    \    classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d\n    classDef accent\
+    \ fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "Records kill DTO boilerplate — immutable, JSON-ready, ~30 lines gone each"
-    - "Sealed types + switch: the compiler forces you to handle every case"
-    - "StructuredTaskScope cancels the whole fan-out when one call fails — no leaks"
-alt_text: "Diagram contrasting a raw executor fan-out that leaks threads and loses errors against a StructuredTaskScope that cancels siblings on first failure"
-status: ready
+  - Records kill DTO boilerplate — immutable, JSON-ready, ~30 lines gone each
+  - 'Sealed types + switch: the compiler forces you to handle every case'
+  - StructuredTaskScope cancels the whole fan-out when one call fails — no leaks
+alt_text: Diagram contrasting a raw executor fan-out that leaks threads and loses
+  errors against a StructuredTaskScope that cancels siblings on first failure
+status: published
+published_at: '2026-08-31T13:45:17+00:00'
+linkedin_post_id: urn:li:share:7500186955377197056
 ---
 Virtual threads got the headlines. Three quieter Java 21 features reshape your architecture.
 
