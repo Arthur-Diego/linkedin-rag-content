@@ -1,26 +1,25 @@
 ---
-id: "013"
+id: '013'
 topic: spring ai
-title: "Spring AI: LLMs in your microservices without the Python tax"
+title: 'Spring AI: LLMs in your microservices without the Python tax'
 image:
   palette: spring
-  headline: "Spring AI: LLMs without the Python tax"
-  diagram: |
-    flowchart LR
-        APP["Spring<br/>service"]:::accent --> RAW["Raw model<br/>HTTP calls"]:::bad
-        RAW --> GLUE["Hand-rolled<br/>prompt glue"]:::bad
-        APP --> CC["ChatClient"]:::good
-        CC --> ADV["Advisor chain:<br/>memory &middot; RAG"]:::good
-        ADV --> ANY["Swap any of<br/>20+ models"]:::accent
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: 'Spring AI: LLMs without the Python tax'
+  diagram: "flowchart LR\n    APP[\"Spring<br/>service\"]:::accent --> RAW[\"Raw model<br/>HTTP\
+    \ calls\"]:::bad\n    RAW --> GLUE[\"Hand-rolled<br/>prompt glue\"]:::bad\n  \
+    \  APP --> CC[\"ChatClient\"]:::good\n    CC --> ADV[\"Advisor chain:<br/>memory\
+    \ &middot; RAG\"]:::good\n    ADV --> ANY[\"Swap any of<br/>20+ models\"]:::accent\n\
+    \    classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n    classDef good\
+    \ fill:#dcfce7,stroke:#22c55e,color:#14532d\n    classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "One ChatClient, 20+ models — swap Anthropic to OpenAI without touching logic"
-    - "Advisors are a filter chain for AI: memory, RAG and logging as interceptors"
-    - "No Python sidecar: the LLM shares your JVM, tracing and security"
-alt_text: "Diagram contrasting hand-rolled raw model calls against a Spring AI ChatClient with an advisor chain over 20+ swappable models"
-status: ready
+  - One ChatClient, 20+ models — swap Anthropic to OpenAI without touching logic
+  - 'Advisors are a filter chain for AI: memory, RAG and logging as interceptors'
+  - 'No Python sidecar: the LLM shares your JVM, tracing and security'
+alt_text: Diagram contrasting hand-rolled raw model calls against a Spring AI ChatClient
+  with an advisor chain over 20+ swappable models
+status: published
+published_at: '2026-09-08T17:45:59+00:00'
+linkedin_post_id: urn:li:share:7503146631811198978
 ---
 20-plus models, one ChatClient. No Python sidecar required.
 
