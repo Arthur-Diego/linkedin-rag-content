@@ -1,0 +1,20 @@
+One advisor turns a chat model into a RAG pipeline.
+
+In Spring AI, retrieval isn't a rewrite — it's a QuestionAnswerAdvisor you drop into the ChatClient. It queries your vector store, appends the matches to the prompt, and the model answers from your data instead of guessing.
+
+Picture two answers to the same question: the bare model call confidently invents details; the RAG path retrieves your documents first and stays grounded.
+
+Making it production-grade:
+
+1. Pick a memory strategy on purpose: full messages for context, prompt summaries for token cost, vector recall for long sessions. The wrong one blows up spend or drops context.
+2. Keep the VectorStore abstraction — swap PGVector for another store without touching retrieval code.
+3. Treat retrieved chunks as untrusted input. A poisoned document is a prompt-injection vector; keep instructions separate from data.
+4. Reindex when embeddings change — mixed vectors fail silently.
+
+The bigger lesson: RAG quality is an architecture problem, not a model problem. The advisor is the easy part; memory, chunking and trust boundaries are where systems live or die.
+
+Which memory strategy are you running today? 👇
+
+📚 Part 2 of 3 — Spring AI for Microservices. Next: tool calling, MCP and the agent scaling trap.
+
+#SpringAI #RAG
