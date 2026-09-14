@@ -1,0 +1,20 @@
+Tool calling is 50 lines now. Scaling it isn't.
+
+Spring AI made agents almost trivial: annotate a method with @McpTool and the model can call it. Through the Model Context Protocol, your service both consumes remote tools and exposes its own — no language lock-in.
+
+Picture the same agent under load: one pins session state to a server and forces sticky routing; the other runs stateless sessions and scales behind any gateway.
+
+What separates a demo from production:
+
+1. Treat tools as a security boundary. An agent that calls tools turns prompt injection into real actions — validate inputs and scope permissions per tool.
+2. Use Spring AI 2.0's composable tool loop to observe and guard each step, not fire and hope.
+3. Plan for scale-out: stateful MCP sessions force sticky routing. Externalize session state so restarts and autoscaling stay transparent.
+4. Test tools like endpoints — contract tests on the MCP schema, not just the happy path.
+
+The bigger lesson: the model isn't your hard part anymore. Security boundaries and horizontal scaling are — the same problems microservices always had, now wearing an AI hat.
+
+What would you let an AI agent actually execute in your system? 👇
+
+📚 Part 3 of 3 — Spring AI for Microservices.
+
+#SpringAI #Microservices
