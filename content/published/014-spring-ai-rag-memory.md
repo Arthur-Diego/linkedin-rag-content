@@ -1,27 +1,25 @@
 ---
-id: "014"
+id: '014'
 topic: spring ai
-title: "Spring AI RAG in production: advisors, memory and trust boundaries"
+title: 'Spring AI RAG in production: advisors, memory and trust boundaries'
 image:
   palette: spring
-  headline: "Spring AI RAG: one advisor, grounded answers"
-  diagram: |
-    flowchart LR
-        Q["User<br/>question"]:::accent --> QA["QuestionAnswer<br/>Advisor"]:::good
-        QA --> VS["Vector store<br/>lookup"]:::good
-        VS --> CTX["Context +<br/>chat memory"]:::good
-        CTX --> ANS["Grounded<br/>answer"]:::accent
-        Q --> RAW["Bare model<br/>call"]:::bad
-        RAW --> HALL["Confident<br/>hallucination"]:::bad
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: 'Spring AI RAG: one advisor, grounded answers'
+  diagram: "flowchart LR\n    Q[\"User<br/>question\"]:::accent --> QA[\"QuestionAnswer<br/>Advisor\"\
+    ]:::good\n    QA --> VS[\"Vector store<br/>lookup\"]:::good\n    VS --> CTX[\"\
+    Context +<br/>chat memory\"]:::good\n    CTX --> ANS[\"Grounded<br/>answer\"]:::accent\n\
+    \    Q --> RAW[\"Bare model<br/>call\"]:::bad\n    RAW --> HALL[\"Confident<br/>hallucination\"\
+    ]:::bad\n    classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n    classDef\
+    \ good fill:#dcfce7,stroke:#22c55e,color:#14532d\n    classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "QuestionAnswerAdvisor turns a chat model into RAG — retrieve, inject, answer"
-    - "Three memory strategies: full messages, token-cheap summary, or vector recall"
-    - "Retrieved docs are untrusted input — RAG context is a prompt-injection surface"
-alt_text: "Diagram contrasting a bare model call that hallucinates against a Spring AI RAG path that retrieves from a vector store before answering"
-status: ready
+  - QuestionAnswerAdvisor turns a chat model into RAG — retrieve, inject, answer
+  - 'Three memory strategies: full messages, token-cheap summary, or vector recall'
+  - Retrieved docs are untrusted input — RAG context is a prompt-injection surface
+alt_text: Diagram contrasting a bare model call that hallucinates against a Spring
+  AI RAG path that retrieves from a vector store before answering
+status: published
+published_at: '2026-09-14T13:18:30+00:00'
+linkedin_post_id: urn:li:share:7505253647245668353
 ---
 One advisor turns a chat model into a RAG pipeline.
 
