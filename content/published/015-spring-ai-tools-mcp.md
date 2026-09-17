@@ -1,26 +1,25 @@
 ---
-id: "015"
+id: '015'
 topic: spring ai
-title: "Spring AI agents: tool calling, MCP and the scaling trap"
+title: 'Spring AI agents: tool calling, MCP and the scaling trap'
 image:
   palette: spring
-  headline: "Spring AI agents: tools, MCP, the scaling trap"
-  diagram: |
-    flowchart LR
-        AG["Spring AI<br/>agent"]:::accent --> MCP["MCP tool<br/>calling"]:::good
-        MCP --> STATE["Stateful<br/>sessions"]:::bad
-        STATE --> STICKY["Sticky routing<br/>no scale-out"]:::bad
-        MCP --> LESS["Stateless<br/>sessions"]:::good
-        LESS --> SCALE["Scales behind<br/>any gateway"]:::accent
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: 'Spring AI agents: tools, MCP, the scaling trap'
+  diagram: "flowchart LR\n    AG[\"Spring AI<br/>agent\"]:::accent --> MCP[\"MCP tool<br/>calling\"\
+    ]:::good\n    MCP --> STATE[\"Stateful<br/>sessions\"]:::bad\n    STATE --> STICKY[\"\
+    Sticky routing<br/>no scale-out\"]:::bad\n    MCP --> LESS[\"Stateless<br/>sessions\"\
+    ]:::good\n    LESS --> SCALE[\"Scales behind<br/>any gateway\"]:::accent\n   \
+    \ classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n    classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d\n\
+    \    classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "MCP standardizes tools: consume remote servers, expose your own @McpTool"
-    - "Spring AI 2.0 made the tool-calling loop composable — observe and guard steps"
-    - "Stateful MCP sessions force sticky routing — design for stateless scale-out"
-alt_text: "Diagram showing a Spring AI agent calling MCP tools, contrasting stateful sticky sessions against stateless sessions that scale behind a gateway"
-status: ready
+  - 'MCP standardizes tools: consume remote servers, expose your own @McpTool'
+  - Spring AI 2.0 made the tool-calling loop composable — observe and guard steps
+  - Stateful MCP sessions force sticky routing — design for stateless scale-out
+alt_text: Diagram showing a Spring AI agent calling MCP tools, contrasting stateful
+  sticky sessions against stateless sessions that scale behind a gateway
+status: published
+published_at: '2026-09-17T13:31:12+00:00'
+linkedin_post_id: urn:li:share:7506344006935568384
 ---
 Tool calling is 50 lines now. Scaling it isn't.
 
