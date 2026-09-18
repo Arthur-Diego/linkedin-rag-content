@@ -1,5 +1,5 @@
 ---
-id: "021"
+id: "024"
 topic: lgpd
 title: "LGPD meets AI: personal data in embeddings, prompts and model weights"
 image:

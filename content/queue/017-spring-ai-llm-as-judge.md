@@ -1,5 +1,5 @@
 ---
-id: "023"
+id: "017"
 topic: spring ai
 title: "Spring AI LLM-as-a-judge: a second model that can veto the first"
 image:

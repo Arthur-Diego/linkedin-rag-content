@@ -1,5 +1,5 @@
 ---
-id: "024"
+id: "018"
 topic: spring ai
 title: "Spring AI 2.0 typed output: records as contracts for a probabilistic model"
 image:

@@ -1,5 +1,5 @@
 ---
-id: "022"
+id: "016"
 topic: spring ai
 title: "Spring AI observability: the LLM call you can't see is the one that bills you"
 image:
