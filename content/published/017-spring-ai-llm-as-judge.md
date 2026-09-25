@@ -1,27 +1,27 @@
 ---
-id: "017"
+id: '017'
 topic: spring ai
-title: "Spring AI LLM-as-a-judge: a second model that can veto the first"
+title: 'Spring AI LLM-as-a-judge: a second model that can veto the first'
 image:
   palette: spring
-  headline: "Let a second model grade the first"
-  diagram: |
-    flowchart LR
-        Q["User<br/>prompt"]:::accent --> GEN["Generate<br/>(model A)"]:::accent
-        GEN --> JUDGE["Judge<br/>(model B)"]:::accent
-        JUDGE -->|"score &ge; 4"| OK["Return<br/>answer"]:::good
-        JUDGE -->|"score &lt; 4"| FB["Feedback into<br/>prompt"]:::bad
-        FB --> GEN
-        FB -->|"cap hit"| LAST["Return last,<br/>flag it"]:::bad
-        classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-        classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-        classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
+  headline: Let a second model grade the first
+  diagram: "flowchart LR\n    Q[\"User<br/>prompt\"]:::accent --> GEN[\"Generate<br/>(model\
+    \ A)\"]:::accent\n    GEN --> JUDGE[\"Judge<br/>(model B)\"]:::accent\n    JUDGE\
+    \ -->|\"score &ge; 4\"| OK[\"Return<br/>answer\"]:::good\n    JUDGE -->|\"score\
+    \ &lt; 4\"| FB[\"Feedback into<br/>prompt\"]:::bad\n    FB --> GEN\n    FB -->|\"\
+    cap hit\"| LAST[\"Return last,<br/>flag it\"]:::bad\n    classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d\n\
+    \    classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d\n    classDef accent\
+    \ fill:#0284c7,stroke:#0369a1,color:#ffffff\n"
   bullets:
-    - "Judge scores 1-4; below the bar, its feedback goes back into the prompt"
-    - "Use a separate judge model. Models grade their own answers too kindly"
-    - "Cap retries at 2-3. Every loop multiplies tokens and latency"
-alt_text: "Diagram of a self-refine loop: model A generates, model B judges on a 1 to 4 scale, a passing score returns the answer, a failing score feeds feedback back into the prompt until a retry cap is hit"
-status: ready
+  - Judge scores 1-4; below the bar, its feedback goes back into the prompt
+  - Use a separate judge model. Models grade their own answers too kindly
+  - Cap retries at 2-3. Every loop multiplies tokens and latency
+alt_text: 'Diagram of a self-refine loop: model A generates, model B judges on a 1
+  to 4 scale, a passing score returns the answer, a failing score feeds feedback back
+  into the prompt until a retry cap is hit'
+status: published
+published_at: '2026-09-25T18:29:06+00:00'
+linkedin_post_id: urn:li:share:7509318075008163840
 ---
 Your unit tests are green. Your LLM answers are still wrong.
 
