@@ -1,0 +1,9 @@
+The LLM cannot leak a document it never saw.
+
+Watch the intern's question: without a filter, a restricted chunk travels straight into the prompt. With the ACL applied inside the search, only allowed chunks leave the index.
+
+Filter at retrieval, not in the prompt. "Do not reveal this" is an instruction, not access control.
+
+Where do you enforce permissions in your RAG? 👇
+
+#RAG #AISecurity #AIEngineering

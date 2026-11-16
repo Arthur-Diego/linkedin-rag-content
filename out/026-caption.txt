@@ -1,0 +1,9 @@
+One miss. Then every read skips the database.
+
+Watch the first request: Redis has nothing, so the service reads PostgreSQL once and writes the value back with a TTL. The next reads are served from memory.
+
+Always set that TTL: a key that never expires turns one stale write into a permanent bug.
+
+What TTL do you use on your hottest keys? 👇
+
+#SystemDesign #Caching #BackendEngineering

@@ -1,0 +1,9 @@
+3 hops. That is the whole trick behind RAG.
+
+Watch the question: it stops at the vector DB first, picks up the most relevant chunks, and only then reaches the LLM with that context attached.
+
+The model does not know your data. It reads it at question time, so better retrieval beats a bigger model.
+
+Which hop breaks first in your pipeline? 👇
+
+#RAG #AIEngineering #LLM
