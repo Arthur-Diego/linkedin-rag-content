@@ -1,5 +1,13 @@
+import pytest
+
 from conftest import make_post
 from linkedin_pipeline import ai_card, html_renderer, linkedin, queue_store, run
+
+
+@pytest.fixture(autouse=True)
+def card_mode(monkeypatch):
+    """These tests cover the static-card pipeline (switched off by default, ADR-010)."""
+    monkeypatch.setenv("MEDIA_MODE", "card")
 
 
 def test_dry_run_keeps_queue(repo, monkeypatch):

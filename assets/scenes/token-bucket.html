@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>token bucket scene</title>
+<!--
+  Hand-written scene: a real token-bucket simulation (who passes, who gets a 429) instead
+  of the scripted steps of flow.html. Same contract: window.DURATION + window.renderAt(t).
+-->
+<style>
+  @font-face { font-family: 'Inter'; font-weight: 400; src: url('{{ASSETS}}/fonts/inter-400.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 600; src: url('{{ASSETS}}/fonts/inter-600.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 800; src: url('{{ASSETS}}/fonts/inter-800.woff2') format('woff2'); }
+  html, body { margin: 0; height: 100%; background: #0b1220; }
+  body { display: grid; place-items: center; }
+  svg { width: min(100vw, 80vh, 1080px); height: auto; display: block; font-family: 'Inter', sans-serif; }
+</style>
+</head>
+<body>
+<svg id="stage" viewBox="0 0 1080 1350" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#f87171"/>
+    </marker>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1350" fill="#0b1220"/>
+
+  <text id="title" x="540" y="150" text-anchor="middle" fill="#f8fafc" font-size="66" font-weight="800"></text>
+  <text id="subtitle" x="540" y="204" text-anchor="middle" fill="#94a3b8" font-size="27"></text>
+
+  <g transform="translate(0,130)">
+    <line class="flow" x1="270" y1="400" x2="436" y2="400" stroke="#64748b" stroke-width="3" stroke-dasharray="10 6" marker-end="url(#arrow)"/>
+    <line class="flow" x1="640" y1="400" x2="806" y2="400" stroke="#64748b" stroke-width="3" stroke-dasharray="10 6" marker-end="url(#arrow)"/>
+    <path class="flow" d="M440,430 Q355,580 274,436" fill="none" stroke="#f87171" stroke-opacity=".55" stroke-width="3" stroke-dasharray="10 6" marker-end="url(#arrowRed)"/>
+    <line class="flow" x1="540" y1="460" x2="540" y2="616" stroke="#64748b" stroke-width="3" stroke-dasharray="10 6" marker-end="url(#arrow)"/>
+
+    <text x="353" y="378" text-anchor="middle" fill="#94a3b8" font-size="21">request</text>
+    <text x="723" y="378" text-anchor="middle" fill="#4ade80" font-size="21">allowed</text>
+    <text x="355" y="562" text-anchor="middle" fill="#f87171" font-size="21">429</text>
+    <text x="558" y="545" fill="#94a3b8" font-size="21">token left?</text>
+
+    <g id="packets"></g>
+
+    <g font-weight="600" text-anchor="middle">
+      <rect x="70" y="340" width="200" height="120" rx="18" fill="#111c33" stroke="#38bdf8" stroke-width="3"/>
+      <text x="170" y="396" fill="#f8fafc" font-size="29">Client</text>
+      <text x="170" y="428" fill="#94a3b8" font-size="19" font-weight="400">app / browser</text>
+
+      <rect id="limiter" x="440" y="340" width="200" height="120" rx="18" fill="#111c33" stroke="#a78bfa" stroke-width="3"/>
+      <text x="540" y="396" fill="#f8fafc" font-size="29">Rate Limiter</text>
+      <text x="540" y="428" fill="#94a3b8" font-size="19" font-weight="400">API gateway</text>
+
+      <rect x="810" y="340" width="200" height="120" rx="18" fill="#111c33" stroke="#4ade80" stroke-width="3"/>
+      <text x="910" y="396" fill="#f8fafc" font-size="29">API</text>
+      <text x="910" y="428" fill="#94a3b8" font-size="19" font-weight="400">service</text>
+
+      <rect x="370" y="620" width="340" height="200" rx="18" fill="#111c33" stroke="#fbbf24" stroke-width="3"/>
+      <text x="540" y="664" fill="#f8fafc" font-size="26">Redis · token bucket</text>
+    </g>
+
+    <g id="tokens"></g>
+    <text id="tokenLabel" x="540" y="798" text-anchor="middle" fill="#94a3b8" font-size="20"></text>
+  </g>
+
+  <text id="okCount" x="330" y="1105" text-anchor="middle" fill="#4ade80" font-size="36" font-weight="800"></text>
+  <text id="blockCount" x="750" y="1105" text-anchor="middle" fill="#f87171" font-size="36" font-weight="800"></text>
+  <text id="caption" x="540" y="1212" text-anchor="middle" fill="#f8fafc" font-size="34" font-weight="600"></text>
+  <text id="footer" x="540" y="1318" text-anchor="middle" fill="#94a3b8" font-size="19"></text>
+</svg>
+
+<script>
+const SPEC = {{SPEC}};
+
+// ---------- scene parameters ----------
+const DURATION = 12;          // seconds; the loop closes with the bucket full again
+const CAPACITY = 4;
+const REFILL = 1;             // tokens per second
+const TRAVEL = 0.8;           // seconds a packet takes between two boxes
+const INSIDE = 0.45;          // seconds "inside" the limiter
+
+// a burst of 9 requests, then a single one after the refill
+const SENDS = [...Array.from({ length: 9 }, (_, k) => 0.8 + 0.35 * k), 8.0];
+
+const CAPTIONS = [
+  [0.0, 0.8, 'Bucket full: 4 tokens available'],
+  [0.8, 3.3, 'Burst: every request spends 1 token'],
+  [3.3, 5.4, 'No token left? 429 Too Many Requests'],
+  [5.4, 8.0, 'Refill: +1 token per second'],
+  [8.0, 12.0, 'Bucket refilled: traffic flows again'],
+];
+
+// ---------- simulation (deterministic: everything is a function of time) ----------
+const requests = (() => {
+  let tokens = CAPACITY, last = 0;
+  return SENDS.map((sent) => {
+    const arrive = sent + TRAVEL;
+    tokens = Math.min(CAPACITY, tokens + (arrive - last) * REFILL);
+    last = arrive;
+    const allowed = tokens >= 1;
+    if (allowed) tokens -= 1;
+    return { sent, arrive, allowed };
+  });
+})();
+
+function tokensAt(t) {
+  let tokens = CAPACITY, last = 0;
+  for (const r of requests) {
+    if (r.arrive > t) break;
+    tokens = Math.min(CAPACITY, tokens + (r.arrive - last) * REFILL);
+    if (r.allowed) tokens -= 1;
+    last = r.arrive;
+  }
+  return Math.min(CAPACITY, tokens + (t - last) * REFILL);
+}
+
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const ease = (p) => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
+const lerp = (a, b, p) => a + (b - a) * p;
+const bezier = (p0, p1, p2, p) => (1 - p) * (1 - p) * p0 + 2 * (1 - p) * p * p1 + p * p * p2;
+const $ = (id) => document.getElementById(id);
+
+$('title').textContent = SPEC.title || 'Rate Limiter';
+$('subtitle').textContent = SPEC.subtitle || 'Token bucket · capacity 4 · refill 1 token/s';
+$('footer').textContent = SPEC.footer || '';
+
+// ---------- one frame ----------
+function renderAt(time) {
+  const t = ((time % DURATION) + DURATION) % DURATION;
+
+  // 48 px/s is a multiple of the 16 px dash pattern, so the loop restarts without a jump
+  document.querySelectorAll('.flow').forEach((el) => el.setAttribute('stroke-dashoffset', -t * 48));
+
+  let packets = '';
+  for (const r of requests) {
+    const age = t - r.sent;
+    if (age < 0) continue;
+    let x, y, color, opacity = clamp(age / 0.12);
+    if (age < TRAVEL) {                                   // client -> limiter
+      x = lerp(270, 440, ease(age / TRAVEL)); y = 400; color = '#38bdf8';
+    } else if (r.allowed) {                               // limiter -> API
+      const p = (age - TRAVEL) / (INSIDE + TRAVEL);
+      if (p > 1) continue;
+      x = lerp(440, 810, p); y = 400; color = '#4ade80';
+    } else {                                              // bounced back with a 429
+      const p = (age - TRAVEL) / (TRAVEL * 1.25);
+      if (p > 1) continue;
+      const e = ease(p);
+      x = bezier(440, 355, 270, e); y = bezier(430, 580, 436, e); color = '#f87171';
+      opacity = clamp((1 - p) / 0.15);
+    }
+    packets += `<circle cx="${x}" cy="${y}" r="13" fill="${color}" opacity="${opacity}" filter="url(#glow)"/>`;
+  }
+  $('packets').innerHTML = packets;
+
+  // the limiter flashes green/red on every decision
+  const decided = requests.filter((r) => r.arrive <= t);
+  const last = decided[decided.length - 1];
+  const flash = last ? clamp(1 - (t - last.arrive) / 0.45) : 0;
+  $('limiter').setAttribute('stroke', flash > 0 ? (last.allowed ? '#4ade80' : '#f87171') : '#a78bfa');
+  $('limiter').setAttribute('stroke-width', 3 + 5 * flash);
+
+  const tokens = tokensAt(t);
+  let slots = '';
+  for (let i = 0; i < CAPACITY; i++) {
+    const cx = 435 + i * 70, fill = clamp(tokens - i);
+    slots += `<circle cx="${cx}" cy="730" r="24" fill="none" stroke="#fbbf24" stroke-opacity=".35" stroke-width="2.5"/>`;
+    // whole token = full and bright; token being refilled = smaller and dim
+    if (fill > 0) slots += `<circle cx="${cx}" cy="730" r="${fill >= 1 ? 24 : 20 * fill}" fill="#fbbf24" opacity="${fill >= 1 ? 1 : 0.4}"/>`;
+  }
+  $('tokens').innerHTML = slots;
+  $('tokenLabel').textContent = `${Math.floor(tokens + 1e-9)} of ${CAPACITY} tokens`;
+
+  $('okCount').textContent = `${decided.filter((r) => r.allowed).length} allowed`;
+  $('blockCount').textContent = `${decided.filter((r) => !r.allowed).length} blocked`;
+
+  const cap = CAPTIONS.find(([a, b]) => t >= a && t < b);
+  $('caption').textContent = cap[2];
+  $('caption').setAttribute('opacity', clamp(Math.min((t - cap[0]) / 0.3, (cap[1] - t) / 0.3)));
+}
+
+window.DURATION = DURATION;
+window.renderAt = renderAt;
+
+if (location.hash === '#capture') {
+  renderAt(0);
+} else {
+  const start = performance.now();
+  const tick = (now) => { renderAt((now - start) / 1000); requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+</script>
+</body>
+</html>

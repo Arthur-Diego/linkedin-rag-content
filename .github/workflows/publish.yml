@@ -2,8 +2,16 @@ name: publish-linkedin
 
 on:
   schedule:
-    - cron: "30 11 * * 1,3,5"   # Mon/Wed/Fri 08:30 BRT
-  workflow_dispatch: {}
+    # Mon/Wed/Fri 00:00 UTC = 21:00 BRT the evening before. GitHub fires this workflow's
+    # cron 4-10 h late (measured Sep-Nov 2026), so the approval request is waiting when
+    # the morning starts; the publish job only posts inside the morning window below.
+    - cron: "0 0 * * 1,3,5"
+  workflow_dispatch:
+    inputs:
+      any_time:
+        description: "Publish even outside the morning window"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -15,6 +23,13 @@ concurrency:
 
 env:
   LINKEDIN_VERSION: "202606"
+  # gif  = publish the animated GIF rendered locally and committed to out/ (ADR-010)
+  # card = static card rendered here (gpt-image-2 -> Mermaid -> Pillow); switched off for now
+  MEDIA_MODE: gif
+  # Posts only go out in the morning, São Paulo time: [start, end) in hours.
+  PUBLISH_TZ: America/Sao_Paulo
+  PUBLISH_FROM_HOUR: "6"
+  PUBLISH_UNTIL_HOUR: "12"
 
 jobs:
   prepare:
@@ -37,15 +52,17 @@ jobs:
         run: pip install -q -r requirements.txt
 
       - name: Cache Playwright browsers
+        if: env.MEDIA_MODE == 'card'
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
 
       - name: Install Chromium
+        if: env.MEDIA_MODE == 'card'
         run: python -m playwright install --with-deps chromium
 
-      - name: Render next post (diagram card + caption)
+      - name: Prepare next post (committed GIF, or rendered card in card mode)
         id: pipeline
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -69,7 +86,7 @@ jobs:
           {
             echo "## Post ${{ steps.pipeline.outputs.post_id }} — ${{ steps.pipeline.outputs.post_title }}"
             echo
-            echo "![card](https://raw.githubusercontent.com/${{ github.repository }}/main/${{ steps.pipeline.outputs.image_path }})"
+            echo "![media](https://raw.githubusercontent.com/${{ github.repository }}/main/${{ steps.pipeline.outputs.image_path }})"
             echo
             echo "### Caption"
             echo
@@ -77,7 +94,7 @@ jobs:
             cat "${{ steps.pipeline.outputs.caption_path }}"
             echo '```'
             echo
-            echo "Approve the **publish** job to post this to LinkedIn."
+            echo "Approve the **publish** job to post this to LinkedIn. Posts only go out between ${PUBLISH_FROM_HOUR}:00 and ${PUBLISH_UNTIL_HOUR}:00 (${PUBLISH_TZ}); approve inside that window."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Warn about empty queue
@@ -97,6 +114,17 @@ jobs:
     environment: linkedin
     runs-on: ubuntu-latest
     steps:
+      - name: Morning window check
+        if: ${{ !inputs.any_time }}
+        run: |
+          hour=$((10#$(TZ="$PUBLISH_TZ" date +%H)))
+          now=$(TZ="$PUBLISH_TZ" date "+%H:%M %Z")
+          if [ "$hour" -lt "$PUBLISH_FROM_HOUR" ] || [ "$hour" -ge "$PUBLISH_UNTIL_HOUR" ]; then
+            echo "::error::Approved at $now, outside the ${PUBLISH_FROM_HOUR}:00-${PUBLISH_UNTIL_HOUR}:00 morning window. Nothing was published and the post stays queued. Re-run this job tomorrow morning (Re-run failed jobs), or dispatch the workflow with any_time checked."
+            exit 1
+          fi
+          echo "Inside the morning window ($now)."
+
       - uses: actions/checkout@v4
         with:
           ref: main   # pick up the artifacts committed by the prepare job
