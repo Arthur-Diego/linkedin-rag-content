@@ -30,6 +30,11 @@ class Post:
     def caption(self) -> str:
         return self.body.strip()
 
+    @property
+    def is_animated(self) -> bool:
+        """True for posts published as an animated GIF (frontmatter `animation:`)."""
+        return isinstance(self.meta.get("animation"), dict)
+
 
 def _parse(path: Path) -> Post:
     text = path.read_text(encoding="utf-8")
@@ -45,27 +50,29 @@ def _parse(path: Path) -> Post:
     return Post(path=path, meta=meta, body=body)
 
 
-def _ready_posts(root: Path) -> list[Post]:
+def _ready_posts(root: Path, animated: bool | None = None) -> list[Post]:
+    """'ready' posts; `animated` keeps only animated (True) or only card (False) posts."""
     queue = root / QUEUE_DIR
     if not queue.is_dir():
         return []
     posts = [_parse(p) for p in sorted(queue.glob("*.md"))]
-    return [p for p in posts if p.meta.get("status") == "ready"]
+    return [p for p in posts if p.meta.get("status") == "ready"
+            and (animated is None or p.is_animated == animated)]
 
 
-def list_ready(root: Path) -> list[Post]:
+def list_ready(root: Path, animated: bool | None = None) -> list[Post]:
     """All 'ready' posts, in publication order (lowest id first)."""
-    return sorted(_ready_posts(root), key=lambda p: p.id)
+    return sorted(_ready_posts(root, animated), key=lambda p: p.id)
 
 
-def next_post(root: Path) -> Post | None:
+def next_post(root: Path, animated: bool | None = None) -> Post | None:
     """The 'ready' post with the lowest id, or None if the queue is empty."""
-    posts = _ready_posts(root)
+    posts = _ready_posts(root, animated)
     return min(posts, key=lambda p: p.id) if posts else None
 
 
-def count_ready(root: Path) -> int:
-    return len(_ready_posts(root))
+def count_ready(root: Path, animated: bool | None = None) -> int:
+    return len(_ready_posts(root, animated))
 
 
 def mark_published(root: Path, post: Post, linkedin_post_id: str) -> Path:

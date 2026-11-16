@@ -1,0 +1,9 @@
+4 tokens. That is all that stands between your API and a flood.
+
+Watch the bucket: each request spends one token. The burst drains it, the next calls get a 429, and one new token per second lets traffic back in.
+
+Capacity sets the burst you tolerate. Refill rate sets the load you can sustain.
+
+Token bucket or sliding window: which one guards your API? 👇
+
+#SystemDesign #RateLimiting #BackendEngineering

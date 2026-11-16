@@ -1,88 +1,115 @@
 # Official prompt — professional post generation
 
 When the "Content queue running low" issue shows up (or whenever you want fresh
-topics), open Claude Code at the root of this repository and paste the prompt below.
-Cost: covered by your Claude subscription — no paid API involved.
+topics), open Claude Code at the root of this repository and run
+`/linkedin-gifs <subject> [count]` — the skill applies the rules below. (Pasting the
+prompt below by hand works too.) Cost: covered by your Claude subscription — no paid
+API involved.
 
 The rules encode the research in `docs/research/linkedin-tech-content-playbook.md`
 (1.2M-post hook analysis, van der Blom 2025 algorithm report, ByteByteGo-style
 visual patterns). Don't relax them.
 
+> The pipeline runs in **gif mode** (ADR-010): every new post is an animated
+> system-design diagram. The static-card format (`image:` block) is switched off;
+> its rules are in the git history of this file.
+
 ---
 
 Read `content/published/` and `content/queue/` to see the topics already covered and
-the exact post format. Then create N new posts about RAG in `content/queue/`,
+the exact post format. Then create N new animated posts in `content/queue/`,
 continuing the id numbering. Audience: international engineers and recruiters.
 Everything in English.
 
-## Frontmatter (identical to existing posts)
+## Frontmatter
 
-`id` (3-digit string), `topic`, `title`, `image.headline`, `image.diagram`,
-`image.bullets` (exactly 3), `alt_text`, `status: ready`. Optional `image.palette`:
-per-subject accent color, same layout — `java` (red), `spring` (green), `ai`/`orange`
-(orange); omit for the default violet. Unknown/absent falls back to violet (matched
-by topic as a safety net). Add subjects in `src/linkedin_pipeline/palettes.py`. Optional `image.style`:
-the default is **free** (creative card with the fixed dark/violet series
-identity, one 3D panel per takeaway); set `spec` only to force a strict
-diagram-drawn card. ALWAYS include `image.diagram` (it powers the free-tier
-fallback renderer).
+`id` (3-digit string), `topic`, `title`, `animation` (below), `alt_text` (describe
+what moves, start with "Animated diagram of"), `status: ready`.
 
-## The diagram (`image.diagram`) — the core of the post
+## The animation (`animation:`) — the core of the post
 
-Mermaid `flowchart LR`, rendered on a 4:5 card. Hard rules:
+```yaml
+animation:
+  title: "Cache-Aside"                      # 1-3 words, the concept
+  subtitle: "Read path · the app owns the cache"
+  nodes:                                    # at: [column, row]
+    - {id: client, label: Client, sub: "GET /product/42", at: [0, 0], color: blue}
+    - {id: app, label: Service, sub: "cache-aside", at: [1, 0], color: violet}
+    - {id: cache, label: Redis, sub: "TTL 5 min", at: [2, 0], color: yellow}
+    - {id: db, label: PostgreSQL, sub: "source of truth", at: [1, 1], color: green}
+  edges:
+    - {from: client, to: app, label: read}
+    - {from: app, to: cache, label: "1. get"}
+  tally: {ok: "cache hits", warn: "database reads"}
+  steps:
+    - caption: "First read: the cache has nothing yet"
+      packets:
+        - {path: [client, app, cache, app], kind: bad, turns: 2}
+    - caption: "Next reads never touch the database"
+      packets:
+        - {path: [client, app, cache, app, client], kind: ok, turns: 2, count: 4, every: 0.5}
+```
 
-1. ONE concept per diagram. Rotate three archetypes across posts:
-   step-by-step numbered flow · X-vs-Y comparison (wrong path vs right path) ·
-   architecture boxes with labeled arrows.
-2. Node labels: 1-4 words per line, max 2 lines (`<br/>`). Max ~8 nodes, max 5
-   columns of depth — wider than that shrinks the render.
-3. Use the standard classes and append their definitions verbatim:
-   `:::accent` (entry/exit, blue) · `:::bad` (failure path, red) · `:::good`
-   (solution path, green).
-   ```
-   classDef bad fill:#fee2e2,stroke:#ef4444,color:#7f1d1d
-   classDef good fill:#dcfce7,stroke:#22c55e,color:#14532d
-   classDef accent fill:#0284c7,stroke:#0369a1,color:#ffffff
-   ```
-4. No emojis in the diagram. HTML entities for special chars (`&ne;` `&middot;`
-   `&rarr;` `&ge;`). Real tech names ("BM25", "Vector DB") over generic boxes.
-5. The diagram must teach the mechanism by itself — someone who reads only the
-   image should learn the idea.
+Reference:
 
-## The takeaways (`image.bullets`)
+- `nodes`: `id`, `label` (1-2 words), optional `sub` (≤ 16 chars), `at`, `color`
+  (`blue` `violet` `green` `red` `yellow` `orange` `slate`). Optional `meter: N` draws
+  N dots inside the node (a bucket, a pool, a queue); steps move it with
+  `meters: {node_id: value}`.
+- `edges`: `from`, `to`, optional `label` (≤ 9 chars: it must fit in the gap between
+  two boxes) and `color`. Declare both
+  directions when traffic returns; the scene draws two lanes.
+- `steps`: `caption` (mandatory) plus optional `packets`, `meters`, `seconds`
+  (default: as long as its packets need).
+- `packets`: `path` (node ids, ≥ 2), `kind` (`ok` green · `bad` red · `warn` yellow ·
+  `info` blue), `count` and `every` (seconds between packets), `at` (delay inside the
+  step), `turns` (hop where the packet takes its kind color; before it, blue).
+- `tally`: label per packet kind (≤ 18 chars, at most 2 kinds); counts packets that
+  finished their path.
+- `scene`: omit for the generic engine. Set it to a file in `assets/scenes/` only
+  when the mechanism needs a real simulation (see `token-bucket.html`).
 
-Exactly 3, one line each, concrete and specific (numbers > adjectives). They render
-numbered 1-2-3 under the diagram.
+Hard rules:
 
-## The caption (post body) — 700-1,000 characters
+1. ONE mechanism per animation. Rotate archetypes: request lifecycle · failure path
+   vs happy path · before/after of one change.
+2. At most 5 nodes, grid 3 columns × 2 rows (4 × 4 is the hard limit). Real tech
+   names ("Redis", "Kafka") over generic boxes.
+3. 4-5 steps, total under 16 seconds (LinkedIn rejects GIFs above 250 frames = 16.6 s
+   at 15 fps; the renderer enforces it). Aim for 10-14 s.
+4. Step captions: ≤ 44 characters, present tense, no trailing period. Read in order
+   they must tell the whole story without the post text.
+5. The first frame is the thumbnail: title, subtitle and the full diagram must make
+   sense with nothing moving.
+6. End where it started (meters back to their initial value) so the loop is seamless.
+7. No emojis inside the animation.
 
-Structure, in order:
+## The caption (post body) — 300-500 characters
+
+Short, simple and objective (owner decision, 2026-11-16): the GIF teaches, the
+caption only points at it. Four short blocks separated by blank lines, in order:
 
 1. **Hook (first line, ≤ 10 words)**: a concrete number or a contrarian claim.
    NEVER a question (questions as openers measurably underperform: −34%).
-   Patterns: "500 tokens. That's where most RAG pipelines break." /
-   "50 in, 5 out. That ratio fixes more systems than any model upgrade."
-2. **Image walkthrough (mandatory)**: 1-3 sentences that pull the reader into the
-   visual before the list starts. Default (free style): narrate the CONCEPT
-   ("Picture the two roads: ...") and never mention "the diagram". Only when a
-   post explicitly sets `image.style: spec` may the caption narrate the diagram
-   ("Red path: ... Green path: ...").
-3. **Explanation (the meat)**: 1-2 line paragraphs, heavy white space, plain
-   language. A numbered list of 3-4 production-grade steps with real numbers,
-   thresholds and tool names. Teach the mechanism, not the marketing.
-4. **Reflection ("The bigger lesson: ...")**: one short paragraph that zooms out —
-   what this topic teaches about building systems in general. Mandatory.
-5. **CTA**: ONE easy-to-answer question + 👇.
-6. **Hashtags**: exactly 2-3, niche, at the end (e.g. #RAG #AIEngineering). Never
-   more — 6+ measurably hurts reach.
+   Patterns: "4 tokens. That is all that stands between your API and a flood." /
+   "One miss. Then every read skips the database."
+2. **What the animation shows**: 1-2 sentences narrating what moves
+   ("Watch the bucket: ..."), so the reader looks back at the GIF.
+3. **One takeaway**: a single practical point, 1-2 sentences, tied to what was just
+   shown. No numbered lists, no "bigger lesson" paragraph, no second topic.
+4. **CTA + hashtags**: ONE easy-to-answer question + 👇, then exactly 2-3 niche
+   hashtags (e.g. #SystemDesign #Caching). Never more — 6+ measurably hurts reach.
 
-No external links in the body. Optimize for saves: the post should read as
-reference material someone bookmarks.
+Plain words, short sentences. No external links. If a sentence does not connect to
+what the GIF shows, cut it.
 
 ## Validate before finishing
 
 1. `python -m pytest tests/ -q`
-2. Render every new post and LOOK at each card (diagram fits, labels not clipped):
-   dry-run renders only the next post, so render each new one explicitly via
-   `html_renderer.render_card` or by temporarily reordering ids.
-3. Commit: `content: +N posts in the queue`.
+2. Render every new post: `PYTHONPATH=src python -m linkedin_pipeline.animate`
+   (iterate faster with `<id> --preview`, which writes a live HTML to `out/preview/`).
+3. WATCH each GIF in `out/`: labels not clipped or overlapping, packets follow the
+   story the captions tell, the tally ends on the numbers the post claims.
+4. `PYTHONPATH=src python -m linkedin_pipeline.run --list` shows `gif:rendered` for
+   every new post.
+5. Commit the posts together with their GIFs: `content: +N animated posts in the queue`.

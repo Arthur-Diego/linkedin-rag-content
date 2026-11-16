@@ -1,4 +1,11 @@
-"""Pipeline orchestration: queue -> diagram card -> approval -> LinkedIn (or draft)."""
+"""Pipeline orchestration: queue -> media -> approval -> LinkedIn (or draft).
+
+MEDIA_MODE selects the media pipeline:
+  gif  (default) animated GIF rendered locally with `linkedin_pipeline.animate` and
+       committed to out/; this module only publishes it (ADR-010).
+  card (switched off for now) static card rendered here: gpt-image-2 -> Mermaid -> Pillow.
+Each mode only sees its own posts: `animation:` posts in gif mode, the rest in card mode.
+"""
 
 from __future__ import annotations
 
@@ -18,6 +25,16 @@ def _gh_output(**kwargs) -> None:
     with open(path, "a", encoding="utf-8") as fh:
         for key, value in kwargs.items():
             fh.write(f"{key}={value}\n")
+
+
+MEDIA_MODES = ("gif", "card")
+
+
+def _media_mode() -> str:
+    mode = os.environ.get("MEDIA_MODE", "gif").strip().lower() or "gif"
+    if mode not in MEDIA_MODES:
+        raise SystemExit(f"MEDIA_MODE must be one of {MEDIA_MODES}, got '{mode}'")
+    return mode
 
 
 def _render(post, image_path: Path) -> None:
@@ -60,36 +77,53 @@ def main(argv: list[str] | None = None) -> int:
     if args.render_only and args.publish_only:
         parser.error("--render-only and --publish-only are mutually exclusive")
     root = args.root.resolve()
+    mode_name = _media_mode()
+    gif_mode = mode_name == "gif"
 
     if args.list_queue:
-        ready = queue_store.list_ready(root)
+        ready = queue_store.list_ready(root, animated=gif_mode)
+        parked = queue_store.count_ready(root, animated=not gif_mode)
         if not ready:
-            print("Queue empty: no 'ready' post in content/queue/")
-            return 0
-        print(f"Next up in the queue ({len(ready)} ready, top publishes first):\n")
+            print(f"Queue empty: no 'ready' {mode_name} post in content/queue/")
+        else:
+            print(f"Next up in the {mode_name} queue ({len(ready)} ready, top publishes first):\n")
         for i, p in enumerate(ready, start=1):
-            palette = palettes.resolve_palette(p).name
             topic = str(p.meta.get("topic", "?"))
-            print(f"  {i:>2}. [{p.id}] {topic:<16} · palette:{palette:<8} · {p.title}")
+            if gif_mode:
+                state = "rendered" if (root / "out" / f"{p.id}.gif").exists() else "MISSING"
+                detail = f"gif:{state:<8}"
+            else:
+                detail = f"palette:{palettes.resolve_palette(p).name:<8}"
+            print(f"  {i:>2}. [{p.id}] {topic:<16} · {detail} · {p.title}")
+        if parked:
+            other = "card" if gif_mode else "gif"
+            print(f"\n{parked} ready {other} post(s) parked (MEDIA_MODE={mode_name}).")
         return 0
 
-    post = queue_store.next_post(root)
+    post = queue_store.next_post(root, animated=gif_mode)
     if post is None:
-        print("QUEUE_EMPTY: no 'ready' post in content/queue/")
+        print(f"QUEUE_EMPTY: no 'ready' {mode_name} post in content/queue/")
         _gh_output(queue_empty="true", queue_remaining="0", mode="none")
         return 0
 
     print(f"Selected post: {post.id} — {post.title}")
-    image_path = root / "out" / f"{post.id}.png"
+    image_path = root / "out" / f"{post.id}.{'gif' if gif_mode else 'png'}"
     caption_path = root / "out" / f"{post.id}-caption.txt"
 
+    if gif_mode and not image_path.exists():
+        print(f"ERROR: {image_path.relative_to(root)} not found. Render it locally and "
+              f"commit it:\n  PYTHONPATH=src python -m linkedin_pipeline.animate {post.id}")
+        return 1
     if args.publish_only:
         if not image_path.exists():
             print(f"ERROR: {image_path} not found — run --render-only first.")
             return 1
         print(f"Reusing approved artifacts: {image_path}")
     else:
-        _render(post, image_path)
+        if gif_mode:
+            print(f"Using committed animation: {image_path.relative_to(root)}")
+        else:
+            _render(post, image_path)
         caption_path.parent.mkdir(parents=True, exist_ok=True)
         caption_path.write_text(post.caption + "\n", encoding="utf-8")
         print(f"Image: {image_path}\nCaption: {caption_path}")
@@ -120,7 +154,7 @@ def main(argv: list[str] | None = None) -> int:
         image_path=str(image_path.relative_to(root)),
         caption_path=str(caption_path.relative_to(root)),
         queue_empty="false",
-        queue_remaining=str(queue_store.count_ready(root)),
+        queue_remaining=str(queue_store.count_ready(root, animated=gif_mode)),
     )
     return 0
 

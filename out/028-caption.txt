@@ -1,0 +1,9 @@
+Your RAG answers from the index, not from your documents.
+
+Watch the pipeline: each document is split into chunks, each chunk becomes a vector, and only then can it be found. When a document changes, it has to make the same trip again.
+
+Skip that re-index and the model keeps quoting the old version with full confidence.
+
+How often do you re-index? 👇
+
+#RAG #VectorDatabase #AIEngineering

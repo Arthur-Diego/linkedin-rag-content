@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>flow scene</title>
+<!--
+  Generic animated system-design scene, driven by the `animation:` block of a queued post.
+  Scene contract (shared by every file in assets/scenes/):
+    window.DURATION      loop length in seconds
+    window.renderAt(t)   draws the frame at time t (pure function of t)
+  Opened with #capture the page stays still and the renderer steps the time itself.
+-->
+<style>
+  @font-face { font-family: 'Inter'; font-weight: 400; src: url('{{ASSETS}}/fonts/inter-400.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 600; src: url('{{ASSETS}}/fonts/inter-600.woff2') format('woff2'); }
+  @font-face { font-family: 'Inter'; font-weight: 800; src: url('{{ASSETS}}/fonts/inter-800.woff2') format('woff2'); }
+  html, body { margin: 0; height: 100%; background: #0b1220; }
+  body { display: grid; place-items: center; }
+  svg { width: min(100vw, 80vh, 1080px); height: auto; display: block; font-family: 'Inter', sans-serif; }
+</style>
+</head>
+<body>
+<svg id="stage" viewBox="0 0 1080 1350" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <g id="markers"></g>
+  </defs>
+  <rect width="1080" height="1350" fill="#0b1220"/>
+  <g id="scene"></g>
+</svg>
+
+<script>
+const SPEC = {{SPEC}};
+
+// ---------- theme ----------
+const COLORS = {
+  blue: '#38bdf8', violet: '#a78bfa', green: '#4ade80', red: '#f87171',
+  yellow: '#fbbf24', orange: '#fb923c', slate: '#64748b',
+};
+const KIND = { info: 'blue', ok: 'green', bad: 'red', warn: 'yellow' };
+const TEXT = '#f8fafc', MUTED = '#94a3b8', PANEL = '#111c33';
+const HOP = 0.9;      // seconds a packet takes between two nodes
+const FLASH = 0.45;   // seconds a node stays lit after a packet arrives
+const LANE = 14;      // sideways offset when traffic runs both ways between two nodes
+
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const ease = (p) => (p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const color = (name, fallback) => COLORS[name] || COLORS[fallback];
+
+document.getElementById('markers').innerHTML = Object.entries(COLORS).map(([name, hex]) =>
+  `<marker id="arrow-${name}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">` +
+  `<path d="M0,0 L10,5 L0,10 z" fill="${hex}"/></marker>`).join('');
+
+// ---------- layout: nodes sit on a small grid, `at: [column, row]` ----------
+const cols = Math.max(...SPEC.nodes.map((n) => n.at[0])) + 1;
+const rows = Math.max(...SPEC.nodes.map((n) => n.at[1])) + 1;
+const NODE_W = cols <= 3 ? 240 : 200;
+const colGap = cols > 1 ? Math.min(400, (960 - NODE_W) / (cols - 1)) : 0;
+const rowGap = rows > 1 ? Math.min(290, (720 - 130) / (rows - 1)) : 0;
+
+const nodes = {};
+for (const n of SPEC.nodes) {
+  const meterMax = n.meter ? (typeof n.meter === 'object' ? n.meter.max : n.meter) : 0;
+  nodes[n.id] = {
+    ...n,
+    cx: 540 + (n.at[0] - (cols - 1) / 2) * colGap,
+    cy: 650 + (n.at[1] - (rows - 1) / 2) * rowGap,
+    hw: NODE_W / 2,
+    hh: meterMax ? 82 : 62,
+    meterMax,
+    meterStart: n.meter && typeof n.meter === 'object' && n.meter.start != null ? n.meter.start : meterMax,
+  };
+}
+
+// ---------- timeline: steps play one after the other ----------
+const steps = [];
+const packets = [];   // { path, kind, turns, start }
+let cursor = 0;
+for (const step of SPEC.steps) {
+  let busyUntil = 0;
+  for (const group of step.packets || []) {
+    const count = group.count || 1, every = group.every ?? 0.4, at = group.at || 0;
+    for (let i = 0; i < count; i++) {
+      packets.push({ path: group.path, kind: group.kind || 'info', turns: group.turns ?? 1, start: cursor + at + i * every });
+    }
+    busyUntil = Math.max(busyUntil, at + (count - 1) * every + (group.path.length - 1) * HOP);
+  }
+  const seconds = step.seconds || Math.max(2.2, busyUntil + 0.5);
+  steps.push({ ...step, start: cursor, end: cursor + seconds });
+  cursor += seconds;
+}
+const DURATION = cursor;
+
+// pairs of nodes with traffic in both directions get two lanes
+const directed = new Set();
+(SPEC.edges || []).forEach((e) => directed.add(`${e.from}>${e.to}`));
+packets.forEach((p) => p.path.slice(1).forEach((id, i) => directed.add(`${p.path[i]}>${id}`)));
+const lane = (a, b) => (directed.has(`${b}>${a}`) ? LANE : 0);
+
+// segment between two nodes: centre to centre, shifted sideways into its lane
+function segment(aId, bId) {
+  const a = nodes[aId], b = nodes[bId];
+  const dx = b.cx - a.cx, dy = b.cy - a.cy, len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len, uy = dy / len, off = lane(aId, bId);
+  const ox = -uy * off, oy = ux * off;   // right-hand side of the travel direction
+  return { x1: a.cx + ox, y1: a.cy + oy, x2: b.cx + ox, y2: b.cy + oy, ux, uy, len, a, b, off };
+}
+
+// distance from a node centre to its border along direction (ux, uy)
+const border = (n, ux, uy) => Math.min(n.hw / Math.abs(ux || 1e-9), n.hh / Math.abs(uy || 1e-9));
+
+// dashes move at a speed that closes the loop exactly (no jump when the GIF restarts)
+const DASH = 16;
+const dashSpeed = (Math.max(1, Math.round((48 * DURATION) / DASH)) * DASH) / DURATION;
+
+function wrap(text, max = 44) {
+  if (text.length <= max) return [text];
+  const cut = text.lastIndexOf(' ', Math.ceil(text.length / 2) + 6);
+  return cut > 0 ? [text.slice(0, cut), text.slice(cut + 1)] : [text];
+}
+
+// ---------- one frame ----------
+function renderAt(time) {
+  const t = ((time % DURATION) + DURATION) % DURATION;
+  let out = '';
+
+  out += `<text x="540" y="150" text-anchor="middle" fill="${TEXT}" font-size="66" font-weight="800">${esc(SPEC.title)}</text>`;
+  if (SPEC.subtitle) out += `<text x="540" y="204" text-anchor="middle" fill="${MUTED}" font-size="27">${esc(SPEC.subtitle)}</text>`;
+
+  // edges
+  for (const e of SPEC.edges || []) {
+    const s = segment(e.from, e.to);
+    const name = COLORS[e.color] ? e.color : 'slate';
+    const from = border(s.a, s.ux, s.uy), to = s.len - border(s.b, s.ux, s.uy) - 4;
+    const p = (d) => `${s.x1 + s.ux * d},${s.y1 + s.uy * d}`;
+    out += `<path d="M${p(from)} L${p(to)}" fill="none" stroke="${COLORS[name]}" stroke-width="3" stroke-dasharray="10 6" ` +
+           `stroke-dashoffset="${-t * dashSpeed}" marker-end="url(#arrow-${name})"/>`;
+    if (e.label) {
+      let nx = -s.uy, ny = s.ux;                                   // lane side
+      if (!s.off && (ny > 0 || (ny === 0 && nx < 0))) { nx = -nx; ny = -ny; }   // otherwise above / to the right
+      const mid = (from + to) / 2, dist = s.off ? 22 : 24;
+      const x = s.x1 + s.ux * mid + nx * dist, y = s.y1 + s.uy * mid + ny * dist;
+      const anchor = Math.abs(nx) > 0.5 ? (nx > 0 ? 'start' : 'end') : 'middle';
+      out += `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" fill="${e.color ? COLORS[name] : MUTED}" font-size="21">${esc(e.label)}</text>`;
+    }
+  }
+
+  // packets (drawn under the nodes, so they disappear while "inside" one)
+  const flashes = {};   // node id -> { strength, hex }
+  const tally = {};
+  for (const pk of packets) {
+    const age = t - pk.start;
+    if (age < 0) continue;
+    const hops = pk.path.length - 1;
+    // a packet travels blue until hop `turns`, where the outcome (its kind) becomes visible
+    const hex = (hop) => color(hops > 1 && hop < pk.turns ? 'blue' : KIND[pk.kind], 'blue');
+    for (let h = 1; h <= hops; h++) {       // arrivals light up the node
+      const since = age - h * HOP;
+      if (since >= 0 && since < FLASH) flashes[pk.path[h]] = { strength: 1 - since / FLASH, hex: hex(h - 1) };
+    }
+    if (age >= hops * HOP) { tally[pk.kind] = (tally[pk.kind] || 0) + 1; continue; }
+    const hop = Math.floor(age / HOP), s = segment(pk.path[hop], pk.path[hop + 1]);
+    const d = ease(age / HOP - hop) * s.len;
+    out += `<circle cx="${s.x1 + s.ux * d}" cy="${s.y1 + s.uy * d}" r="13" fill="${hex(hop)}" filter="url(#glow)"/>`;
+  }
+
+  // nodes
+  for (const n of Object.values(nodes)) {
+    const flash = flashes[n.id];
+    const stroke = flash ? flash.hex : color(n.color, 'violet');
+    out += `<rect x="${n.cx - n.hw}" y="${n.cy - n.hh}" width="${n.hw * 2}" height="${n.hh * 2}" rx="18" fill="${PANEL}" ` +
+           `stroke="${stroke}" stroke-width="${3 + (flash ? 5 * flash.strength : 0)}"/>`;
+    const labelY = n.meterMax ? n.cy - n.hh + 42 : (n.sub ? n.cy - 6 : n.cy + 10);
+    out += `<text x="${n.cx}" y="${labelY}" text-anchor="middle" fill="${TEXT}" font-size="29" font-weight="600">${esc(n.label)}</text>`;
+    if (n.meterMax) {
+      // meter value: starts at meterStart, each step may move it to a new target
+      let value = n.meterStart;
+      for (const st of steps) {
+        const target = st.meters && st.meters[n.id];
+        if (target == null || t < st.start) continue;
+        value += (target - value) * clamp((t - st.start) / (st.end - st.start));
+      }
+      const r = Math.min(20, (n.hw * 2 - 40) / n.meterMax / 2 - 4), gap = r * 2 + 10;
+      for (let i = 0; i < n.meterMax; i++) {
+        const cx = n.cx + (i - (n.meterMax - 1) / 2) * gap, cy = n.cy + 8, fill = clamp(value - i);
+        const hex = color(n.color, 'yellow');
+        out += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${hex}" stroke-opacity=".35" stroke-width="2.5"/>`;
+        if (fill > 0.02) out += `<circle cx="${cx}" cy="${cy}" r="${fill >= 0.98 ? r : (r - 4) * fill}" fill="${hex}" opacity="${fill >= 0.98 ? 1 : 0.4}"/>`;
+      }
+      out += `<text x="${n.cx}" y="${n.cy + n.hh - 18}" text-anchor="middle" fill="${MUTED}" font-size="19">` +
+             `${Math.floor(value + 0.02)} / ${n.meterMax} ${esc(n.sub || '')}</text>`;
+    } else if (n.sub) {
+      out += `<text x="${n.cx}" y="${n.cy + 26}" text-anchor="middle" fill="${MUTED}" font-size="19">${esc(n.sub)}</text>`;
+    }
+  }
+
+  // tally: how many packets of each kind finished their path
+  const kinds = Object.keys(SPEC.tally || {});
+  kinds.forEach((kind, i) => {
+    const x = 540 + (i - (kinds.length - 1) / 2) * 420;
+    out += `<text x="${x}" y="1105" text-anchor="middle" fill="${color(KIND[kind], 'blue')}" font-size="36" font-weight="800">` +
+           `${esc(SPEC.tally[kind])}: ${tally[kind] || 0}</text>`;
+  });
+
+  // caption of the current step
+  const index = Math.max(0, steps.findIndex((s) => t >= s.start && t < s.end));
+  const step = steps[index];
+  const opacity = clamp(Math.min((t - step.start) / 0.3, (step.end - t) / 0.3));
+  const lines = wrap(step.caption || '');
+  lines.forEach((line, i) => {
+    out += `<text x="540" y="${1212 - (lines.length - 1) * 22 + i * 44}" text-anchor="middle" fill="${TEXT}" font-size="34" font-weight="600" opacity="${opacity}">${esc(line)}</text>`;
+  });
+
+  // step progress
+  const segW = 46, total = steps.length * segW + (steps.length - 1) * 10;
+  steps.forEach((s, i) => {
+    const x = 540 - total / 2 + i * (segW + 10);
+    const done = clamp((t - s.start) / (s.end - s.start));
+    out += `<rect x="${x}" y="1272" width="${segW}" height="5" rx="2.5" fill="#1e293b"/>`;
+    if (done > 0) out += `<rect x="${x}" y="1272" width="${segW * done}" height="5" rx="2.5" fill="${COLORS.violet}"/>`;
+  });
+
+  if (SPEC.footer) out += `<text x="540" y="1318" text-anchor="middle" fill="${MUTED}" font-size="19">${esc(SPEC.footer)}</text>`;
+
+  document.getElementById('scene').innerHTML = out;
+}
+
+window.DURATION = DURATION;
+window.renderAt = renderAt;
+
+if (location.hash === '#capture') {
+  renderAt(0);
+} else {
+  const start = performance.now();
+  const tick = (now) => { renderAt((now - start) / 1000); requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+</script>
+</body>
+</html>
